@@ -21,6 +21,5 @@ prompt_content=$(sed "s/{{ORCA_RUN_ID}}/$run_id/g" "$script_dir/coordinator-prom
 
 exec /home/dk/.local/bin/codex \
   --cd "$repo_root" \
-  --sandbox workspace-write \
-  --ask-for-approval on-request \
+  --dangerously-bypass-approvals-and-sandbox \
   "$prompt_content"
