@@ -1,0 +1,30 @@
+---
+- name: Deployment Artifact
+  hosts: all
+  gather_facts: false
+  vars:
+    artifact_dir: "{{ down_root }}/drop" #Artifact download folder
+  tasks:
+    - debug:
+        var: hostvars
+      tags:
+        - debug
+        - test
+    - raw: "uname -a"
+      tags:
+        - test
+    - name: File transfer - app
+      copy:
+        src: "{{ artifact_dir }}/{{ folder_name }}/{{ app_name }}/{{ pkg_version }}/{{ app_name }}-{{ pkg_version }}.jar"
+        dest: "{{ download_dir }}"
+        mode: 0640
+        directory_mode: 0750
+    - name: Copy artifact
+      copy:
+        src: "{{ download_dir }}/{{ app_name }}-{{ pkg_version }}.jar"
+        dest: "{{ app_dir }}/{{ app_name }}"
+        remote_src: yes
+        mode: 0640
+        force: yes
+      tags:
+        - restart

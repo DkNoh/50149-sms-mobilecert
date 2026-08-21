@@ -1,0 +1,4 @@
+interface:
+  display_name: "Protocol Regression"
+  short_description: "고정 길이 인증 전문의 바이트 호환성과 회귀를 검증"
+  default_prompt: "Use $protocol-regression to verify fixed-width MCI, KCB, and LG U+ protocol compatibility and tests."

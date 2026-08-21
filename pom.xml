@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.scbk.cert</groupId>
+	<artifactId>mobile-cert</artifactId>
+	<version>1.0</version>
+	<packaging>jar</packaging>
+	<name>mobile-cert</name>
+
+	<properties>
+		<!-- 소스코드 인코딩으로 변경(EUC-KR or UTF-8) -->
+		<project.build.sourceEncoding>EUC-KR</project.build.sourceEncoding>
+		<!-- 개발/운영 환경 JAVA 버전에 맞게 변경 -->
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<!-- 외부 라이브러리 경로 -->
+		<externalLibs>${project.basedir}/libs</externalLibs>
+	</properties>
+
+	<dependencies>
+
+		<!-- EJB인 경우만 사용
+		<dependency>
+			<groupId>org.apache.openejb</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>6.0-6</version>
+			<scope>provided</scope>
+		</dependency>
+		 -->
+		
+		<dependency>
+			<groupId>com.bitmechanic</groupId>
+			<artifactId>jdbcpool</artifactId>
+			<version>0.99</version>
+			<scope>system</scope>
+			<systemPath>${externalLibs}/jdbcpool-0.99.jar</systemPath>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.logging.log4j.core</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.17.1</version>
+			<scope>system</scope>
+			<systemPath>${externalLibs}/log4j-core-2.17.1.jar</systemPath>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.17.1</version>
+			<scope>system</scope>
+			<systemPath>${externalLibs}/log4j-api-2.17.1.jar</systemPath>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.log4j</groupId>
+			<artifactId>log4j-1.2-api</artifactId>
+			<version>2.17.1</version>
+			<scope>system</scope>
+			<systemPath>${externalLibs}/log4j-1.2-api-2.17.1.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>oracle</groupId>
+			<artifactId>ojdbc</artifactId>
+			<version>14</version>
+			<scope>system</scope>
+			<systemPath>${externalLibs}/ojdbc14.jar</systemPath>
+		</dependency>
+
+	</dependencies>
+	
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		
+		<plugins>
+			<!-- JAVA Compile -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<failOnError>false</failOnError>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

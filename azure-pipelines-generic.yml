@@ -1,0 +1,101 @@
+trigger:
+  # commmit & push시 자동으로 파이프라인 실행할 branch명
+  #- bau/main
+  - bau/develop
+
+parameters:
+  - name: releaseId
+    type: string
+    displayName: Release WorkItem ID
+    default: '0' # 릴리즈 Work Item ID로 변경
+  
+  # 다른 Repo에서 Dependency 할 경우 SNAPSHOT 사용 (production 배포시 SNAPSHOT 사용 불가)
+  # - name: releaseVersion
+  #   type: string
+  #   displayName: Release Version
+  #   default: '0.0.1-SNAPSHOT'
+
+resources:
+  repositories:
+    - repository: governed-templates
+      name: dj-core/governed-templates
+      ref: "feature/onprem" # bau/* branch에서만 사용 가능, 그 외에는 "main" 사용
+      type: git
+
+variables:
+  - group: 50149-NonProd # 해당 BS의 변수그룹으로 변경
+  - name: BRANCH_NAME
+    value: $(Build.SourceBranchName)
+  - name: VERSION
+    value: '0.0.1-$(Build.BuildId)' # BAU는 0.0.1, ADO Adoption은 1.0.0 버전을 사용
+    #value: '${{ parameters.packageVersion }}' #스냡샷 버전인 경우
+
+
+extends:
+  template: governed-template/build-and-deploy.yml@governed-templates
+  parameters:
+      ITAM : 50149 # 해당 BS의 CI ID로 변경경
+      releaseId: ${{ parameters.releaseId }}
+      # 참고URL: https://confluence.global.standardchartered.com/display/ADO/Modular+CICD+-+Maven
+      buildStackName: maven
+      buildStackParams:
+        pool: 'sc-linux'
+        packageVersion: $(VERSION)
+        jdkVersion: '8' # JDK버전 변경 (1.8 미만은 8로 설정)
+        mavenVersion: '3.8.1' # JDK21은 3.9.9로 설정
+        mavenOptions: '-Xmx1024m'
+        mavenPomFile: 'pom.xml'
+        goals: 'clean install'
+        options: '--batch-mode'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        skipJacocoCoverage : false
+        targetPathArtifactory: 'generic-release'
+        binaryPath: './**/target/classes'
+        sonarExclusions: './src/test/**/*.java,**/comm/*'
+        skipEarlyFeedback: true
+        deployStackName: 'ansible'
+        deploymentFolderName: 'config' # Ansible 설정파일 포함된 폴더 지정 ex) deploy, config, ansible...
+        archiveType: zip
+
+      # 참고URL: https://confluence.global.standardchartered.com/display/ADO/Ansible+Template
+      deployStackName: 'ansible'
+      deployStackParams:
+        ansibleVersion:
+        ansibleConfigPath: config/ansible/ansible.cfg
+        ansibleVerboseLevel: -vv # log level: -v(최소) ; -vv ; - vvv ; -vvvv(최대)
+        playbookDryRun: false
+      deployEnvironments:
+        - name: dev
+          environment: dev
+          displayName: Dev
+          pool: sc-linux
+          devApproval: false
+          inventoryPath: config/ansible/inventory/dev.ini
+          playbookPath: config/ansible/deploy-dev.yml
+          extraVars: 'pkg_version=$(VERSION) base_dir=$(Build.ArtifactStagingDirectory) build_id=$(Build.BuildId)'
+          vaultSecretKey: 'devsshkey'
+          deploymentSecretConfigs:
+            - secretName: 'devsshkey'
+              secretValue: $(devsshkey)
+        - name: release
+          environment: release
+          displayName: Release
+          dependsOn:
+            - dev
+          pool: sc-linux
+        - name: production_v2
+          environment: production_v2 # bau/* branch에서만 사용, 그외 "production" 사용
+          displayName: Production
+          inventoryPath: config/ansible/inventory/prod.ini
+          playbookPath: config/ansible/deploy-prod-linux-test.yml
+          dependsOn:
+            - release
+          pool: sc-linux
+          extraVars: 'pkg_version=$(VERSION) base_dir=$(Build.ArtifactStagingDirectory) build_id=$(Build.BuildId)'
+          skipTags: 'debug,restart' # site.yml 에서 해당 tag가 포함된 task는 skip처리
+          #tags: 'test' # site.yml 에서 해당 tag가 포함된 task만 실행 - #### 최초 운영 적용시 사용
+          vaultSecretKey: 'prodsshkey'
+          deploymentSecretConfigs:
+            - secretName: 'prodsshkey'
+              secretValue: $(prodsshkey)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Legacy Java Analysis"
+  short_description: "레거시 Java 구조와 위험을 증거 기반으로 분석"
+  default_prompt: "Use $legacy-java-analysis to map this legacy mobile-cert code and report evidence, risks, and missing validation."

@@ -1,0 +1,80 @@
+---
+- name: Unix/Linux Pre-flight Check
+  hosts: all
+  gather_facts: no
+  vars:
+    prod_test_dir: "{{ download_dir }}" # Permission check dir (배포폴더로 변경 필요)
+
+  tasks:
+    - debug:
+        var: hostvars
+    # [Step 1] ADO Agent IP 확인 (Python 방식 적용)
+    - name: Get ADO Agent IP
+      command: >
+        python3 -c "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM);
+        s.connect(('8.8.8.8', 80)); print(s.getsockname()[0]); s.close()"
+      delegate_to: localhost
+      register: agent_ip_result
+      run_once: true
+      changed_when: false
+    - debug:
+        msg: 'ADO Agent IP: {{ agent_ip_result.stdout }}'
+      run_once: true
+      when: agent_ip_result.stdout is defined
+
+    # [Step 2] Artifact 확인
+    - name: Artifact Info
+      raw: |
+        echo "=========================================="
+        echo " [Artifact Info]"
+        find {{ base_dir }}/drop -name "*.*"
+      delegate_to: localhost
+      register: artifact_result
+      run_once: true
+      changed_when: false
+
+    # [Step 3] 연결, 권한, 정보 확인
+    - name: Connectivity, Info & Permission Check
+      raw: |
+        echo "=========================================="
+        echo " [System Info]"
+        echo " Target Host : $(hostname)"
+        echo " Target User : $(whoami)"
+        
+        echo " [OS Version]"
+        if [ -f /etc/redhat-release ]; then
+          cat /etc/redhat-release
+        elif [ -f /usr/bin/oslevel ]; then
+          oslevel -s
+        elif [ -f /etc/release ]; then
+          head -1 /etc/release
+        else
+          uname -sr
+        fi
+
+        echo " [Permission Test]"
+        TEST_FILE="/{{ prod_test_dir }}/ansible_test_$(date +%Y%m%d)_$$"
+        
+        if touch "$TEST_FILE" 2>/dev/null; then
+          echo " Write : OK (File created)"
+          if rm "$TEST_FILE" 2>/dev/null; then
+            echo " Delete: OK (File removed)"
+            echo " RESULT: SUCCESS"
+          else
+            echo " Delete: FAIL (Could not remove file)"
+            echo " RESULT: WARNING"
+          fi
+        else
+          echo " Write : FAIL (Could not create file)"
+          echo " RESULT: FAILED"
+          exit 1
+        fi
+        echo "=========================================="
+      register: unix_result
+
+    - name: Print Result
+      debug:
+        msg:
+          - "{{ artifact_result.stdout_lines }}"
+          - "{{ unix_result.stdout_lines }}"
+      when: artifact_result.stdout_lines is defined or unix_result.stdout_lines is defined

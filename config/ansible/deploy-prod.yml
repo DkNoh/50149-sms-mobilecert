@@ -1,0 +1,48 @@
+---
+- name: Deployment Artifact
+  hosts: all
+  gather_facts: false
+  vars:
+    artifact_dir: "{{ base_dir }}/drop" #Artifact download folder
+  tasks:
+    - debug:
+        var: hostvars
+      tags:
+        - debug
+        - test
+    - raw: "uname -a"
+      tags:
+        - test
+    - name: File transfer - conf
+      copy:
+        src: "{{ base_dir }}/{{ env }}"
+        dest: "{{ conf_dir }}"
+        mode: 0640
+        directory_mode: 0750
+    - name: File transfer - app
+      copy:
+        src: "{{ artifact_dir }}/com/scfb/wbcms/efwb/{{ pkg_version }}/efwb-{{ pkg_version }}.jar"
+        dest: "{{ download_dir }}"
+        mode: 0640
+        directory_mode: 0750
+    - name: Copy artifact
+      copy:
+        src: "{{ download_dir }}/efwb-{{ pkg_version }}.jar"
+        dest: "{{ app_dir }}/{{ app_name }}"
+        remote_src: yes
+        mode: 0640
+        force: yes
+      tags:
+        - restart
+    - name: Stop JBoss
+      ansible.builtin.shell: "/WAS/profiles/stop.sh {{ was_profile }}"
+      ignore_errors: true
+      tags:
+        - restart
+    - name: Wait for JBoss to fully shutdown
+      pause:
+        seconds: 15
+    - name: Start JBoss
+      shell: "/WAS/profiles/start.sh {{ was_profile }} &"
+      tags:
+        - restart

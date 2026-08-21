@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.orca.dev/sms-mobilecert/task-plan.schema.json",
+  "title": "sms-mobilecert Orca Task Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plan_id", "objective", "base_ref", "tasks", "integration_order"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "plan_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "objective": {"type": "string", "minLength": 1},
+    "base_ref": {"const": "main"},
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "dependencies",
+          "allowed_files",
+          "acceptance_criteria",
+          "tests",
+          "risk",
+          "worker",
+          "orca_task_id",
+          "status"
+        ],
+        "properties": {
+          "id": {"type": "string", "pattern": "^task-[a-z0-9][a-z0-9-]*$"},
+          "title": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["analysis", "implementation", "test", "review", "documentation"]},
+          "dependencies": {
+            "type": "array",
+            "items": {"type": "string", "pattern": "^task-[a-z0-9][a-z0-9-]*$"}
+          },
+          "allowed_files": {"type": "array", "items": {"type": "string"}},
+          "acceptance_criteria": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "tests": {"type": "array", "items": {"type": "string"}},
+          "risk": {"enum": ["low", "medium", "high"]},
+          "worker": {"enum": ["coordinator", "codex", "qwen-3.8-local", "qwen-3.8-max"]},
+          "orca_task_id": {"type": ["string", "null"]},
+          "status": {"enum": ["planned", "ready", "running", "review", "completed", "blocked", "failed"]}
+        }
+      }
+    },
+    "integration_order": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^task-[a-z0-9][a-z0-9-]*$"}
+    }
+  }
+}
