@@ -25,23 +25,25 @@ public class Server implements SocketServer {
 	private static String id = "";
 
 	public void serve(Socket socket) {
+		final String requestId = Log.beginRequest();
 		try {
 			configBean = (ConfigBean) XMLFactory.getEntity("XPAY_LEASED");
 			kcbConfigBean = (KCBConfigBean) XMLFactory.getEntity("MOBILE_CERT");
 			
-			setId();
 			socket.setSoTimeout(CommonUtil.parseInt(configBean.getServerTimeout()));
-			ServiceListener listener = new ServiceListener(socket, Server.id, configBean, kcbConfigBean);
+			ServiceListener listener = new ServiceListener(socket, requestId, configBean, kcbConfigBean);
 
 			listener.process();
 
 		} catch (Exception e) {
-			Log.write("log.root", "[" + id + "] SERVER SOCKET ERROR = " + CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.root", "event=server.requestFailed", e, this);
 		} finally {
 			try {
 				socket.close();
 			} catch (IOException io) {
-				Log.write("log.root", "["+ id + "] SERVER SOCKET CLOSE ERROR = " + io.getMessage(), this);
+				Log.error("log.root", "event=server.socketCloseFailed", io, this);
+			} finally {
+				Log.endRequest();
 			}
 		}
 	}

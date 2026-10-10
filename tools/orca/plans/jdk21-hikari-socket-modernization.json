@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "jdk21-hikari-socket-modernization",
+  "objective": "Migrate the legacy EUC-KR fixed-width socket service to a reproducible JDK 21 Maven build with HikariCP while preserving protocol bytes and safe shutdown behavior.",
+  "base_ref": "main",
+  "tasks": [
+    {
+      "id": "task-dependency-baseline",
+      "title": "Recover Maven dependencies and protocol baseline",
+      "kind": "implementation",
+      "dependencies": [],
+      "allowed_files": ["pom.xml", "src/test/**", "tools/code-index/out/**"],
+      "acceptance_criteria": [
+        "No dependency uses system scope or systemPath",
+        "Compiler failures are not suppressed",
+        "Synthetic EUC-KR protocol byte tests exist before production charset behavior changes"
+      ],
+      "tests": ["mvn test", "mvn package"],
+      "risk": "high",
+      "worker": "codex",
+      "orca_task_id": "task_02c2f32ade1e",
+      "status": "completed"
+    },
+    {
+      "id": "task-hikari-transactions",
+      "title": "Replace jdbcpool with HikariCP and explicit transaction boundaries",
+      "kind": "implementation",
+      "dependencies": ["task-dependency-baseline"],
+      "allowed_files": ["pom.xml", "src/main/java/scbk/cert/dao/**", "src/main/java/scbk/cert/server/ServiceLauncher.java", "src/test/**"],
+      "acceptance_criteria": [
+        "One application-owned HikariDataSource is used",
+        "The KCB update and insert operation commits or rolls back atomically",
+        "JDBC resources are closed with try-with-resources and data parameters are bound"
+      ],
+      "tests": ["DAO transaction tests with fake or mock JDBC", "mvn test"],
+      "risk": "high",
+      "worker": "codex",
+      "orca_task_id": "task_e3d41c74d717",
+      "status": "completed"
+    },
+    {
+      "id": "task-socket-lifecycle",
+      "title": "Harden socket framing, concurrency, resource cleanup, and shutdown",
+      "kind": "implementation",
+      "dependencies": ["task-hikari-transactions"],
+      "allowed_files": ["src/main/java/scbk/cert/server/**", "src/main/java/scbk/cert/main/Communication.java", "src/main/java/scbk/cert/main/KCBCommunication.java", "src/main/java/scbk/cert/main/Gateway.java", "src/main/java/scbk/cert/dao/DBFactory.java", "src/test/**", "tools/code-index/out/**"],
+      "acceptance_criteria": [
+        "Short reads and EOF fail without returning padded data",
+        "Inbound sizes are bounded before allocation",
+        "Worker concurrency and shutdown waits are bounded",
+        "Shutdown closes Hikari only after socket work is drained"
+      ],
+      "tests": ["partial read and EOF tests", "oversize frame test", "shutdown with active client test", "mvn test"],
+      "risk": "high",
+      "worker": "codex",
+      "orca_task_id": "task_ddb379c1ec53",
+      "status": "blocked"
+    },
+    {
+      "id": "task-jdk21-euckr",
+      "title": "Complete JDK 21 and EUC-KR compatibility cleanup",
+      "kind": "implementation",
+      "dependencies": ["task-socket-lifecycle"],
+      "allowed_files": ["pom.xml", "src/main/java/scbk/cert/util/**", "src/main/java/scbk/cert/main/**", "src/main/java/scbk/cert/dao/**", "src/test/**", "tools/code-index/out/**"],
+      "acceptance_criteria": [
+        "Protocol conversions use verified EUC-KR boundaries",
+        "CommonUtil range and empty-input defects are covered and fixed",
+        "Directly touched deprecated reflection and XML parsing defects are removed",
+        "JDK 21 test and package gates pass without production connections"
+      ],
+      "tests": ["synthetic golden-byte suite", "mvn test", "mvn package", "tools/code-index/refresh.sh"],
+      "risk": "high",
+      "worker": "codex",
+      "orca_task_id": "task_8d7119570814",
+      "status": "planned"
+    }
+  ],
+  "integration_order": [
+    "task-dependency-baseline",
+    "task-hikari-transactions",
+    "task-socket-lifecycle",
+    "task-jdk21-euckr"
+  ]
+}

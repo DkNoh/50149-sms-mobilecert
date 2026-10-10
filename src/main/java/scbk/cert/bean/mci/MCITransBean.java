@@ -1,5 +1,7 @@
 package scbk.cert.bean.mci;
 
+import scbk.cert.util.CertCharset;
+
 import scbk.cert.util.CommonUtil;
 
 public class MCITransBean {
@@ -17,7 +19,7 @@ public class MCITransBean {
 	}
 
 	public MCITransBean(String transaction) {
-		this(transaction.getBytes());
+		this(transaction.getBytes(CertCharset.EUC_KR));
 	}
 
 	public MCITransBean(byte[] transaction) {

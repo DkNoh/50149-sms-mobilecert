@@ -39,9 +39,9 @@ public class CreateParser {
 			factory.setValidating(true);
 			saxParser = factory.newSAXParser();
 		} catch (SAXException e) {
-			Log.write("log.root", "SAXException =" + e.getMessage(), this);
+			Log.error("log.root", "event=XML_PARSER_INITIALIZATION_FAILED", e, this);
 		} catch (ParserConfigurationException e) {
-			Log.write("log.root", "ParserConfigurationException =" + e.getMessage(), this);
+			Log.error("log.root", "event=XML_PARSER_CONFIGURATION_FAILED", e, this);
 		}
 	}
 

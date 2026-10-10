@@ -16,6 +16,8 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import scbk.cert.util.Log;
+
 public class SocketManager {
 
 	public Socket socket = null;
@@ -57,7 +59,7 @@ public class SocketManager {
 
 	public OutputStream getOutputStream() throws IOException {
 		if (socket == null) {
-			System.out.println("getOutputStream() Error");
+			Log.error("log.root", "event=socket.outputStreamUnavailable", this);
 			throw new IOException("socket is null");
 		}
 		return socket.getOutputStream();
@@ -65,7 +67,7 @@ public class SocketManager {
 
 	public InputStream getInputStream() throws IOException {
 		if (socket == null) {
-			System.out.println("getInputStream() Error");
+			Log.error("log.root", "event=socket.inputStreamUnavailable", this);
 			throw new IOException("socket is null");
 		}
 		return socket.getInputStream();
@@ -80,7 +82,7 @@ public class SocketManager {
 			inputStream = getInputStream();
 			outputStream = getOutputStream();
 		} catch (IOException io) {
-			System.out.println("connect() error");
+			Log.error("log.root", "event=socket.connectFailed", io, this);
 			throw new IOException(io.getMessage());
 		}
 	}

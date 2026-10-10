@@ -8,6 +8,8 @@
  */
 package scbk.cert.bean.uplus;
 
+import scbk.cert.util.CertCharset;
+
 import scbk.cert.util.CommonUtil;
 
 public class HeaderBean {
@@ -45,7 +47,7 @@ public class HeaderBean {
 
 		String header = transaction.toString();
 		String data = header + part;
-		return "B" + CommonUtil.zerofill(data.getBytes().length, 6) + data;
+		return "B" + CommonUtil.zerofill(data.getBytes(CertCharset.EUC_KR).length, 6) + data;
 	}
 
 	public String getTransaction() {

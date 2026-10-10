@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "utf8-runtime",
+  "objective": "Remove the JVM-wide EUC-KR startup requirement while preserving explicit protocol, source, and standard-stream encodings; verify UTF-8 startup and byte compatibility.",
+  "base_ref": "main",
+  "tasks": [
+    {
+      "id": "task-utf8-runtime",
+      "title": "UTF-8 default runtime with explicit legacy boundary encodings",
+      "kind": "implementation",
+      "dependencies": [],
+      "allowed_files": [
+        "src/main/java/scbk/cert/util/CertCharset.java",
+        "src/main/java/scbk/cert/server/ServiceLauncher.java",
+        "src/test/java/scbk/cert/baseline/ProtocolRegressionTest.java",
+        "src/test/java/scbk/cert/server/ServiceLauncherStartupTest.java",
+        "tools/run-mobilecert.sh",
+        "tools/tests/compare-runtimes.py",
+        "tools/tests/verify-mobilecert.sh",
+        "tools/tests/README.md",
+        "docs/auth-test-readiness.md",
+        "docs/jdk21-hikari-selective.md",
+        "docs/oracle-integration.md",
+        "tools/orca/plans/utf8-runtime.json"
+      ],
+      "acceptance_criteria": [
+        "No JVM-wide EUC-KR guard or production launch option",
+        "Explicit protocol/source/standard-stream EUC-KR preserved",
+        "UTF-8 child JVM loads synthetic XML, starts and closes listener, and preserves Korean output",
+        "No production config, database, or provider connection",
+        "Known unrelated readiness failures remain visible"
+      ],
+      "tests": [
+        "mvn -Dtest=ProtocolRegressionTest,ServiceLauncherStartupTest test",
+        "tools/tests/verify-mobilecert.sh regression",
+        "tools/tests/verify-mobilecert.sh coverage",
+        "mvn -DskipTests package",
+        "Packaged run-mobilecert.sh startup/shutdown with isolated synthetic XML and UTF-8 runtime property check"
+      ],
+      "risk": "medium",
+      "worker": "codex",
+      "orca_task_id": null,
+      "status": "completed"
+    }
+  ],
+  "integration_order": [
+    "task-utf8-runtime"
+  ]
+}

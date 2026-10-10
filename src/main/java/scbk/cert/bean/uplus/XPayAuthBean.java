@@ -9,6 +9,8 @@
 
 package scbk.cert.bean.uplus;
 
+import scbk.cert.util.CertCharset;
+
 import scbk.cert.util.CommonUtil;
 
 public class XPayAuthBean {
@@ -118,7 +120,7 @@ public class XPayAuthBean {
 	}
 
 	public XPayAuthBean(String transaction) {
-		mciParser(transaction.getBytes());
+		mciParser(transaction.getBytes(CertCharset.EUC_KR));
 	}
 
 	private void mciParser(byte[] transaction) {

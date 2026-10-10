@@ -1,5 +1,7 @@
 package scbk.cert.bean.mci;
 
+import scbk.cert.util.CertCharset;
+
 import java.nio.ByteBuffer;
 
 import scbk.cert.util.CommonUtil;
@@ -89,17 +91,17 @@ public class MCIParser {
 		// 2012.04.04 MCI 출력 데이터 포멧 변경
 		int recvLeng = (mciHeaderBean.getTransaction()
 						+ mciTransBean.getTransaction() + resultCd
-						+ CommonUtil.byteFiller(resultMsg, 100) + hdata + redata).getBytes().length;
+						+ CommonUtil.byteFiller(resultMsg, 100) + hdata + redata).getBytes(CertCharset.EUC_KR).length;
 		recvLeng = recvLeng + 2; // delimiter length 적용
 		ByteBuffer resp = ByteBuffer.allocate(2048);
-		resp.put(CommonUtil.toString(CommonUtil.zerofill(recvLeng, 8)).getBytes());
-		resp.put(mciHeaderBean.getTransaction().getBytes()); // 시스템 헤더부
-		resp.put(mciTransBean.getTransaction().getBytes()); // 거래 공통부
+		resp.put(CommonUtil.toString(CommonUtil.zerofill(recvLeng, 8)).getBytes(CertCharset.EUC_KR));
+		resp.put(mciHeaderBean.getTransaction().getBytes(CertCharset.EUC_KR)); // 시스템 헤더부
+		resp.put(mciTransBean.getTransaction().getBytes(CertCharset.EUC_KR)); // 거래 공통부
 		resp.put(END_OF_SEGMENT);
-		resp.put(resultCd.getBytes());
-		resp.put(CommonUtil.byteFiller(resultMsg, 100).getBytes());
-		resp.put(hdata.getBytes()); // 출력 데이터부 헤더
-		resp.put(redata.getBytes()); // 출력 데이터부 정보
+		resp.put(resultCd.getBytes(CertCharset.EUC_KR));
+		resp.put(CommonUtil.byteFiller(resultMsg, 100).getBytes(CertCharset.EUC_KR));
+		resp.put(hdata.getBytes(CertCharset.EUC_KR)); // 출력 데이터부 헤더
+		resp.put(redata.getBytes(CertCharset.EUC_KR)); // 출력 데이터부 정보
 		resp.put(FIELD_DELIMITER);
 		resp.flip();
 		resp.rewind();
@@ -111,13 +113,13 @@ public class MCIParser {
 
 	public void MCIParserTest() {
 		byte[] response = null;
-		byte[] ddd = CommonUtil.byteFiller("TEST", 150).getBytes();
+		byte[] ddd = CommonUtil.byteFiller("TEST", 150).getBytes(CertCharset.EUC_KR);
 		ByteBuffer b = ByteBuffer.allocate(1024);
 		b.put(ddd);
 		b.put(END_OF_SEGMENT);
-		b.put("CONV".getBytes());
+		b.put("CONV".getBytes(CertCharset.EUC_KR));
 		b.put(END_OF_SEGMENT);
-		b.put("DATA".getBytes());
+		b.put("DATA".getBytes(CertCharset.EUC_KR));
 		b.put(END_OF_SEGMENT);
 		b.put(END_OF_JUNMUN);
 		b.put(END_OF_JUNMUN);
@@ -133,7 +135,7 @@ public class MCIParser {
 //		System.out.println("data = [" + data + "]");
 //		System.out.println("length = [" + CommonUtil.toString(response).length() + "]");
 
-		parsing(data.substring(8).getBytes());
+		parsing(data.substring(8).getBytes(CertCharset.EUC_KR));
 		// parsing(response);
 	}
 

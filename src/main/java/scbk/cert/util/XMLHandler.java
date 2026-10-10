@@ -39,7 +39,7 @@ public class XMLHandler extends DefaultHandler {
 					try {
 						object = Class.forName(attributes.getValue(i)).newInstance();
 					} catch (Exception e) {
-						Log.write("log.root", CommonUtil.getExceptionMessage(e), this);
+						Log.error("log.root", "event=XML_ENTITY_INITIALIZATION_FAILED", e, this);
 					}
 				}
 				if (attributes.getQName(i).equals("name")) {

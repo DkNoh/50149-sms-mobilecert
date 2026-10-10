@@ -1,0 +1,42 @@
+{
+  "name": "safe-application-logging",
+  "orca_task_id": null,
+  "orca_unavailable_reason": "No callable Orca task tool is available in this session.",
+  "status": "completed",
+  "worker": "Codex with provider, server and DAO/review subagents",
+  "worktree": "worktrees/safe-logging",
+  "branch": "codex/mobilecert-safe-logging",
+  "scope": [
+    "Explicit log levels and fixed event names in 16 application source files",
+    "Do not publish raw packets, CI/DI, SQL, exception messages or credentials",
+    "Request-local diagnostic IDs with guaranteed cleanup at server boundary",
+    "20 new JUnit cases; preserve protocol bytes, SQL, transactions, returns, pool/thread settings"
+  ],
+  "constraints": [
+    "No real DB/KCB/LGU/MCI access",
+    "Keep pre-existing failure-handling defects visible in readiness tests",
+    "Hikari independent JUL output and external deployment configuration are outside this log wrapper",
+    "Legacy Log.write remains for manual tools and charset compatibility",
+    "No full authentication E2E runner added in this stage"
+  ],
+  "validation": [
+    "Pre-change main regression: 22 passed",
+    "Focused final logger/DAO regression: 10 passed",
+    "Final worktree regression: 42 passed, 0 failed, 0 skipped",
+    "Main integrated coverage: 42 passed, 0 failed, 0 skipped; lines 1221/3080 (39.6%), branches 134/488 (27.5%)",
+    "JDK21 pre-log/current independent byte comparison: six provider cases, 6038 equal bytes; 13 protocol cases pass on both",
+    "7 DAO/util files retain identical Java tokens apart from logs/comments; 8 protocol beans byte-identical",
+    "EUC-KR source round-trip, git diff --check, shell syntax and source index refresh passed",
+    "Main readiness: 0 passed, 10 failed, 0 skipped; all existing failure-handling cases remain failures, not accepted as passes",
+    "Main mvn -DskipTests package passed; isolated launcher startup/shutdown tests included in the 42-case suite"
+  ],
+  "rollback": "Integration saves exact pre-change copies and manifest under main target/logging-rollback; stop service and restore only listed files after checking no subsequent edits, then rebuild. No database changes to undo.",
+  "qwen_calls": 0,
+  "unverified": [
+    "Development Oracle 19c authentication DML/end-to-end integration",
+    "Real KCB/carrier delivery",
+    "Production load/soak and actual Log4j/JUL collection settings",
+    "Actual Java8 versus Java21 execution; only Java21 pre-log/current comparison ran",
+    "SonarQube server scan/Quality Gate; JaCoCo XML is available"
+  ]
+}

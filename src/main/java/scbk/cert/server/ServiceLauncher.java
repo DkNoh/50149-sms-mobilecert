@@ -10,6 +10,8 @@
 package scbk.cert.server;
 
 import scbk.cert.conf.ConfigBean;
+import scbk.cert.dao.DBFactory;
+import scbk.cert.util.CertCharset;
 import scbk.cert.util.CommonUtil;
 import scbk.cert.util.Log;
 import scbk.cert.util.XMLFactory;
@@ -31,24 +33,39 @@ public class ServiceLauncher {
 		} else {
 			service = new SocketService(CommonUtil.parseInt(configBean.getServerPort()), new Server());
 		}
-		Log.write("log.day", "LGD_XPAY / KCB SERVER RUN = TRUE", this);
+		Log.debug("log.day", "event=service.listenerStarted", this);
 		return true;
 	}
 
 	public void close() throws Exception {
-		service.close();
+		try {
+			if (service != null) {
+				service.close();
+			}
+		} finally {
+			DBFactory.shutdown();
+		}
 	}
 
 	public static void main(String[] args) {
+		CertCharset.configureStandardStreams();
 		try {
 			scbk.cert.server.ServiceLauncher server = new scbk.cert.server.ServiceLauncher();
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+				try {
+					server.close();
+					Log.info("log.root", "event=service.stopped", server);
+				} catch (Exception e) {
+					Log.error("log.root", "event=service.shutdownFailed", e, server);
+				}
+			}, "mobilecert-shutdown"));
 			if (server.start()) {
-				System.out.println("Service Started ... ^^ LGD_XPAY / KCB SERVER.. (Mobile Cert..) ");
+				Log.info("log.root", "event=service.started", server);
 			} else {
-				System.out.println("Service Start fail ");
+				Log.error("log.root", "event=service.startFailed", server);
 			}
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			Log.error("log.root", "event=service.startFailed", e, null);
 		}
 	}
 	

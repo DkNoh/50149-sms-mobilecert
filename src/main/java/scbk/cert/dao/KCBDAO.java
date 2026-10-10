@@ -46,8 +46,7 @@ public class KCBDAO {
 			}
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + selectQry + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=KCBDAO.getSerno", e, this);
 		} finally {
 			db.close(conn, pstmt, rset);
 		}
@@ -113,8 +112,7 @@ public class KCBDAO {
 			conn.commit();
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=KCBDAO.insert", e, this);
 		} finally {
 			db.close(pstmt);
 			db.close(conn);
@@ -198,8 +196,7 @@ public class KCBDAO {
 
 			conn.commit();
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=KCBDAO.updateStep1", e, this);
 		} finally {
 			db.close(pstmt);
 			db.close(pstmt2);
@@ -255,8 +252,7 @@ public class KCBDAO {
 			}
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=KCBDAO.selectCheck", e, this);
 		} finally {
 			db.close(conn, pstmt, rset);
 		}
@@ -284,8 +280,7 @@ public class KCBDAO {
 				cnt = rset.getInt("CNT");
 			}
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=KCBDAO.selectDeptCode", e, this);
 		} finally {
 			db.close(conn, pstmt, rset);
 		}

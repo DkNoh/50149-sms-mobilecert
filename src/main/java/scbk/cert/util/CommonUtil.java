@@ -117,7 +117,7 @@ public class CommonUtil {
 	}
 
 	public static String byteFiller(String oldStr, int len) {
-		byte[] b = oldStr.getBytes();
+		byte[] b = oldStr.getBytes(CertCharset.EUC_KR);
 		int oldLen = b.length;
 
 		if (oldLen >= len) {
@@ -132,7 +132,7 @@ public class CommonUtil {
 				nb[i] = ' ';
 			}
 
-			return new String(nb);
+			return new String(nb, CertCharset.EUC_KR);
 		}
 	}
 
@@ -141,7 +141,7 @@ public class CommonUtil {
 		try {
 			b = oldStr.getBytes(charSet);
 		} catch (Exception e) {
-			b = oldStr.getBytes();
+			b = oldStr.getBytes(CertCharset.EUC_KR);
 		}
 		int oldLen = b.length;
 
@@ -157,7 +157,7 @@ public class CommonUtil {
 				nb[i] = ' ';
 			}
 
-			return new String(nb);
+			return new String(nb, CertCharset.EUC_KR);
 		}
 	}
 
@@ -243,9 +243,9 @@ public class CommonUtil {
 		if (length(b) < start || length(b) == 0) {
 			return "";
 		} else if (length(b) < start + end) {
-			return new String(b, start, length(b));
+			return new String(b, start, length(b), CertCharset.EUC_KR);
 		} else {
-			return new String(b, start, end);
+			return new String(b, start, end, CertCharset.EUC_KR);
 		}
 	}
 
@@ -272,13 +272,13 @@ public class CommonUtil {
 			}
 		}
 
-		return new String(nb);
+		return new String(nb, CertCharset.EUC_KR);
 	}
 
 	public static byte[] byteTrim(String str, int len) {
-		byte[] b = str.getBytes();
+		byte[] b = str.getBytes(CertCharset.EUC_KR);
 
-		byte[] nb = byteTrim(b, len).getBytes();
+		byte[] nb = byteTrim(b, len).getBytes(CertCharset.EUC_KR);
 		if (nb.length == len) {
 			return nb;
 		} else {
@@ -321,7 +321,7 @@ public class CommonUtil {
 
 	public static String convertBankType(String str) {
 
-		byte[] srcByte = str.getBytes();
+		byte[] srcByte = str.getBytes(CertCharset.EUC_KR);
 		byte[] destByte = new byte[srcByte.length + 2];
 		destByte[0] = 0x0E;
 		destByte[srcByte.length + 1] = 0x0F;
@@ -364,7 +364,7 @@ public class CommonUtil {
 		if (b == null) {
 			return 0;
 		} else {
-			return parseInt(new String(b));
+			return parseInt(new String(b, CertCharset.EUC_KR));
 		}
 	}
 
@@ -402,7 +402,7 @@ public class CommonUtil {
 				}
 			}
 		} catch (Exception e) {
-			Log.write("log.root", CommonUtil.getExceptionMessage(e), null);
+			Log.error("log.root", "event=BEAN_FIELD_ASSIGNMENT_FAILED", e, null);
 		}
 	}
 
@@ -437,7 +437,7 @@ public class CommonUtil {
 				}
 			}
 		} catch (Exception e) {
-			Log.write("log.root", CommonUtil.getExceptionMessage(e), null);
+			Log.error("log.root", "event=BEAN_FORMAT_FAILED", e, null);
 		}
 		return sb.toString();
 	}
@@ -503,7 +503,7 @@ public class CommonUtil {
     		}
     		return maskingData;
 		} catch (Exception e) {
-			Log.write("log.day", "setMaskingHost() : " + e.getMessage(), null);
+			Log.warn("log.day", "event=HOST_MASKING_FAILED", e, null);
 			return "";
 		} 
 	}
@@ -537,7 +537,7 @@ public class CommonUtil {
     		}
     		return maskingData;
 		} catch (Exception e) {
-			Log.write("log.day", "setMaskingHost() : " + e.getMessage(), null);
+			Log.warn("log.day", "event=KCB_MASKING_FAILED", e, null);
 			return "";
 		} 
 	}
@@ -545,12 +545,12 @@ public class CommonUtil {
 	
 	public static String setMasking(String str, int startIndex, int endIndex) {
 		if(str == null || "".equals(str)) {
-			Log.write("log.day", "[CommonUtil.setMasking] error str is null", null);
+			Log.warn("log.day", "event=MASKING_INPUT_EMPTY", null);
 			return "";
 		};
 		
 		if(!(str.length() > startIndex && str.length() >= endIndex)) {
-			Log.write("log.day", "[CommonUtil.setMasking] error index range ", null);
+			Log.warn("log.day", "event=MASKING_RANGE_INVALID", null);
 			return "";
 		}
 		return replaceChar(str, startIndex, endIndex);
@@ -564,7 +564,7 @@ public class CommonUtil {
             }
             return sb.toString();
 		} catch (Exception e) {
-			Log.write("log.day", e.getMessage(), null);
+			Log.warn("log.day", "event=MASKING_REPLACEMENT_FAILED", e, null);
 			return "";
 		} 
     }

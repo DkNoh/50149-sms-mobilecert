@@ -37,7 +37,7 @@ public class XMLFactory {
 		XMLHandler xml = new XMLHandler();
 		CreateParser cParser = new CreateParser(xml);
 		String serverType = System.getProperty("scbk.cert.server.type", "dev");
-		Log.write("log.root", " serverType = " + serverType, null);
+		Log.debug("log.root", "event=XML_CONFIGURATION_LOAD_REQUESTED", null);
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append("../conf/service-");
@@ -47,8 +47,7 @@ public class XMLFactory {
 		try {
 			cParser.parse(sb.toString());
 		} catch (Exception e) {
-			System.out.println(e);
-			Log.write("log.root", CommonUtil.getExceptionMessage(e), null);
+			Log.error("log.root", "event=XML_CONFIGURATION_LOAD_FAILED", e, null);
 		}
 		fMap = xml.map;
 	}

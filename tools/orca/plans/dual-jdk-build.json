@@ -1,0 +1,68 @@
+{
+  "name": "java8-and-java21-build-profiles",
+  "orca_task_id": null,
+  "orca_unavailable_reason": "No callable Orca task tool is available; the isolated worktree is attached to the current Codex task.",
+  "codex_task_id": "01a1265f-923c-7a12-9eb4-d434efba6140",
+  "status": "completed",
+  "worker": "Codex",
+  "worktree": "/Users/dk/.codex/worktrees/87bf/50149-sms-mobilecert",
+  "scope": [
+    "Maven java8/java21 dependency profiles and matching JDK checks",
+    "Java 8-compatible explicit EUC-KR standard streams and route-file reader",
+    "Run the same 43 regression tests (42 existing plus actual JDBC class-loading check) on both native JDKs",
+    "Extend original/current byte comparison to both runtimes"
+  ],
+  "constraints": [
+    "No authentication, SQL, transaction, pool-setting or socket behavior changes",
+    "No real DB, KCB, LGU or internal MCI access",
+    "Preserve pre-existing dirty changes during integration"
+  ],
+  "validation": [
+    "JDK8 1.8.0_504: java8 + coverage clean verify, 43 tests passed, no failures/errors/skips; application classes all major 52",
+    "Integrated main JDK21 21.0.11: java21 + coverage clean verify, 43 tests passed, no failures/errors/skips; application classes all major 65",
+    "Automatic Java8 activation passes validation; wrong runtime and simultaneous java8/java21 profiles are rejected",
+    "Readiness on both JDK8 and JDK21: 10 existing failures each, identical case set; no behavior fixes in this change",
+    "Original Java8/EUC-KR and current Java8/EUC-KR, Java8/UTF-8, Java21/UTF-8: 13 protocol checks and 6 provider byte cases per configuration, all identical",
+    "Development Oracle helper offline tests: 37 passed (helper remains JDK21 only)",
+    "Bash syntax, git diff --check, source index refresh, profile-specific runtime dependency lists, and source/test byte identity after integration passed"
+  ],
+  "qwen_calls": 0,
+  "branch": "codex/mobilecert-dual-jdk",
+  "jdk8_validation_distribution": {
+    "name": "Zulu OpenJDK 8u504 macOS arm64",
+    "url": "https://cdn.azul.com/zulu/bin/zulu8.96.0.205-ca-jdk8.0.504-macosx_aarch64.tar.gz",
+    "sha256": "58bb3c08f2aa63d9743cf31899fa4b8c6c9effefce9479e7288c26621c3bb21b",
+    "installed_globally": false
+  },
+  "unverified": [
+    "Original complete Java8 build/JDBCPOOL comparison: original pool jar unavailable; comparison reports SKIP",
+    "Real Oracle database connection/DML with the Java8 ojdbc8 profile",
+    "Development KCB, carrier delivery, internal MCI, production load and onsite OS/JDK distribution",
+    "SonarQube scan/Quality Gate; this change does not raise coverage to 60%",
+    "Development Oracle preflight and Docker Oracle wrappers remain JDK21 only"
+  ],
+  "rollback": "Exact pre-integration copies are retained in target/dual-jdk-rollback and a private validation directory. Stop the service, review manifest and subsequent edits, restore only listed files, then rebuild the matching profile. No DB changes.",
+  "changed_files": [
+    "pom.xml",
+    "tools/run-mobilecert.sh",
+    "src/main/java/scbk/cert/util/CertCharset.java",
+    "src/main/java/scbk/cert/main/Gateway.java",
+    "src/test/java/scbk/cert/util/LogSafetyTest.java",
+    "src/test/java/scbk/cert/util/LogCapture.java",
+    "src/test/java/scbk/cert/dao/OracleIntegrationTest.java",
+    "src/test/java/scbk/cert/dao/HikariMigrationTest.java",
+    "src/test/java/scbk/cert/baseline/ProtocolRegressionTest.java",
+    "src/test/java/scbk/cert/server/ServiceLauncherStartupTest.java",
+    "src/test/java/scbk/cert/server/ServerLoggingTest.java",
+    "src/test/java/scbk/cert/main/ProviderTestSupport.java",
+    "src/test/java/scbk/cert/main/ProviderLoggingTest.java",
+    "tools/tests/README.md",
+    "tools/tests/verify-mobilecert.sh",
+    "tools/tests/compare-runtimes.py",
+    "docs/development-testing.md",
+    "src/test/java/scbk/cert/support/TestIo.java",
+    "src/test/java/scbk/cert/baseline/RuntimeDependencyTest.java",
+    "docs/dual-jdk-build.md",
+    "tools/orca/plans/dual-jdk-build.json"
+  ]
+}

@@ -14,6 +14,8 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import java.util.LinkedList;
 
+import scbk.cert.util.Log;
+
 public class SocketService {
 
 	private ServerSocket serverSocket = null;
@@ -55,7 +57,11 @@ public class SocketService {
 				Socket socket = serverSocket.accept();
 				startServerThread(socket);
 			} catch (IOException e) {
-				e.printStackTrace();
+				if (serverSocket.isClosed()) {
+					Log.debug("log.root", "event=server.listenerClosed", this);
+				} else {
+					Log.error("log.root", "event=server.acceptFailed", e, this);
+				}
 			}
 		}
 	}
@@ -94,7 +100,7 @@ public class SocketService {
 				}
 				itsSocket.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				Log.error("log.root", "event=server.workerIoFailed", e, this);
 			}
 		}
 	}

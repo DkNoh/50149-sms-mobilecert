@@ -9,8 +9,11 @@
 
 package scbk.cert.main;
 
+import scbk.cert.util.CertCharset;
+
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
@@ -31,6 +34,9 @@ import scbk.cert.util.CommonUtil;
 import scbk.cert.util.Log;
 
 public class Gateway {
+	// Routing behavior is unchanged; report this optional-file fallback once per JVM.
+	private static final java.util.concurrent.atomic.AtomicBoolean ROUTE_WARNING_LOGGED =
+			new java.util.concurrent.atomic.AtomicBoolean();
 
 	private ConfigBean configBean = null;
 	private KCBConfigBean kcbConfigBean = null;
@@ -66,7 +72,7 @@ public class Gateway {
 		
 		ArrayList<String> lguPlusList = new ArrayList<String>();
 		try {
-			FileReader fileReader = new FileReader(lguPlus);
+			InputStreamReader fileReader = new InputStreamReader(new FileInputStream(lguPlus), CertCharset.EUC_KR);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			
 			while((readLine = bufferedReader.readLine()) != null) {
@@ -81,7 +87,11 @@ public class Gateway {
 			bufferedReader.close();
 			fileReader.close();
 		} catch(Exception e) {
-			Log.write("log.root", id + " FILE LOADING ERROR : ../conf/lguPlus ----> USE KCB!!", this);
+			if (ROUTE_WARNING_LOGGED.compareAndSet(false, true)) {
+			Log.warn("log.root", "event=PROVIDER_ROUTE_FILE_UNAVAILABLE fallback=KCB", e, this);
+			} else {
+				Log.debug("log.root", "event=PROVIDER_ROUTE_FALLBACK_REPEATED provider=KCB", this);
+			}
 			// 오류 발생시 무조건 KCB로 인증하도록 함.
 			mobileCertMode = "KCB";
 		}
@@ -96,10 +106,10 @@ public class Gateway {
 		
 		byte[] response = null;
 		if("KCB".equals(mobileCertMode)) {
-			Log.write("log.root", id + " KCB CONFIG FILE LOAD CHECK = " + kcbConfigBean.getKcbPort(), this);
+			Log.debug("log.root", "event=PROVIDER_ROUTE_SELECTED provider=KCB", this);
 			response = kcbCert(reqData);
 		} else if("LGU".equals(mobileCertMode)) {
-			Log.write("log.root", id + " LGU+ CONFIG FILE LOAD CHECK = " + configBean.getLgdPort(), this);
+			Log.debug("log.root", "event=PROVIDER_ROUTE_SELECTED provider=LGU", this);
 			response = lguPlusCert(reqData);
 		}
 		
@@ -153,8 +163,6 @@ public class Gateway {
 				}
 			} else if (xPayAuthReqBean.getMobileStep().equals("STEP2")) {
 				// step2 의 필수값은 LG거래번호 , 인증번호 - 필수값이 없을 경우 XXX0 리턴
-				// System.out.println("GETTIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD##############################"+xPayAuthReqBean.getTid());
-				// System.out.println("GETTIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD##############################"+xPayAuthReqBean.getAuthNumber());
 				if (!xPayAuthReqBean.getTid().equals("")) {
 					if (!xPayAuthReqBean.getAuthNumber().equals("")) {
 						checkValue = "0000";
@@ -328,7 +336,6 @@ public class Gateway {
 				certResBean.setResponseCode("0000");
 			}
 
-//			System.out.println("returnData [" + CommonUtil.toString(returnData) + "]");
 			/*
 			 * config 테스트 유무에 따라 응답값 설정
 			 * // 2021.06.29 SCHG 전문 삭제 반영으로 STEP9 사용하지 않음.
@@ -356,7 +363,6 @@ public class Gateway {
 			 * 결과를 UPDATE 한다. 
 			 */
 			boolean updated = false;
-//			System.out.println("=====>>>> certResBean.getCertMode()=" + certResBean.getCertMode());
 //			updated = dao.updateStep1(tranSerno, currentDtm, resHeaderBean, certResBean); // 20231201 개발계 테스트 때문에 return 위로 옮김,  ci,di 셋팅
 			
 			// STEP1에서 AUTHMODE 에 값이  "PASS"가 아닐때, BSS 전문 신청 후 통신 성공 시 SCHG 전문 바로 전송.
@@ -391,13 +397,12 @@ public class Gateway {
 //				KCBHeaderBean resHeaderBean2 = new KCBHeaderBean(returnData2);
 //				KCBCertResBean certResBean2 = new KCBCertResBean(returnData2);
 //				
-////				System.out.println("SCHG Response===>" + certResBean2.getTransaction());
 //				
 //				updated = dao.updateStep1(tranSerno2, currentDtm2, resHeaderBean2, certResBean2);
 //				
 //			} 
 			if("STEP1".equals(certReqBean.getMobileStep())) {
-				Log.write("log.day", id + " STEP1 CertMode KCB result [" + certResBean.getCertMode() + "]", this);
+				Log.debug("log.day", "event=KCB_STEP1_RESULT certMode=" + Log.code(certResBean.getCertMode()), this);
 			}
 			resXpayAuthBean.setMobileStep(certReqBean.getMobileStep());
 			resXpayAuthBean.setTid(certReqBean.getTid());
@@ -500,7 +505,7 @@ public class Gateway {
 			// XPayAuthBean resXpayAuthBean = comm.getResXpayAuthBean();
 			byte[] returnData = comm.socketComm(reqData);
 			
-			Log.write("log.day", id + " Gateway returnData [" + new String(returnData) + "]", this);
+			Log.debug("log.day", "event=LGU_GATEWAY_RESPONSE bytes=" + returnData.length, this);
 			String step = xPayAuthReqBean.getMobileStep();
 			HeaderBean resHeaderBean = new HeaderBean(returnData);
 			XPayAuthBean resXpayAuthBean = new XPayAuthBean(returnData, step); 
@@ -565,8 +570,6 @@ public class Gateway {
 //			reqHeader = "0180" + reqHeader;
 //		}
 		
-//		System.out.println("=======> reqHeader[" + reqHeader + "]");
-//		System.out.println("=======> reqBody[" + reqBody + "]");
 		return reqHeader + reqBody;
 	}
 	

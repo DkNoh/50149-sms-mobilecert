@@ -1,5 +1,7 @@
 package scbk.cert.bean.mci;
 
+import scbk.cert.util.CertCharset;
+
 import scbk.cert.util.CommonUtil;
 
 public class MCIHeaderBean {
@@ -27,7 +29,7 @@ public class MCIHeaderBean {
 	}
 
 	public MCIHeaderBean(String transaction) {
-		this(transaction.getBytes());
+		this(transaction.getBytes(CertCharset.EUC_KR));
 	}
 
 	public MCIHeaderBean(byte[] transaction) {

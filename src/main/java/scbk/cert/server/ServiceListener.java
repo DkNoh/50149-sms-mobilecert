@@ -8,7 +8,10 @@
  */
 package scbk.cert.server;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
 
 import scbk.cert.conf.ConfigBean;
 import scbk.cert.conf.KCBConfigBean;
@@ -35,10 +38,11 @@ public class ServiceListener {
 		socket.setSocket(receiveSocket);
 		this.configBean = configBean;
 		this.kcbConfigBean = kcbConfigBean;
-		this.id = "[" + id + "] ";
+		this.id = id;
 	}
 
 	public void process() {
+		final long startedAt = System.nanoTime();
 		try {
 			byte[] specLength = socket.recv(8);
 
@@ -49,24 +53,28 @@ public class ServiceListener {
 			request = socket.recv(CommonUtil.parseInt(specLength));
 
 			if (request != null) {
-				String reqMaskData = CommonUtil.setMaskingHost(CommonUtil.toString(request), "out");
-				Log.write("log.day", id + " HOST>>MOBILE_CERT [" + reqMaskData + "]" + "length: " + reqMaskData.length(), this);
+				Log.debug("log.day", "event=mci.requestReceived bytes=" + request.length, this);
 				Gateway gateway = new Gateway(configBean, kcbConfigBean, id);
 				response = gateway.execute(request);
 				socket.send(response);
+				Log.debug("log.day", "event=mci.responseWritten bytes=" + response.length, this);
+				Log.info("log.day", "event=mci.responseSent durationMs="
+						+ TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt), this);
 				
 			}
 		} catch (Exception e) {
 			if (request != null) {
-				Log.write("log.day", id + " HOST<<MOBILE_CERT [RESONOSE ERROR]" + CommonUtil.getExceptionMessage(e), this);
+				Log.error("log.day", "event=mci.responseFailed", e, this);
+			} else if (e instanceof SocketTimeoutException) {
+				Log.warn("log.day", "event=mci.inputTimeout", e, this);
+			} else if (e instanceof IOException) {
+				Log.warn("log.day", "event=mci.inputReadFailed", e, this);
+			} else if (e instanceof RuntimeException) {
+				Log.error("log.day", "event=mci.inputFailed", e, this);
 			} else {
-				Log.write("log.day", id + " MCI ACK", this);
+				Log.debug("log.day", "event=mci.inputEndedOrIncomplete", this);
 			}
 		} finally {
-			if (request != null) {
-				String resMaskData =  CommonUtil.setMaskingHost(CommonUtil.toString(response), "in");
-				Log.write("log.day", id + " HOST<<MOBILE_CERT [" + resMaskData + "] length : " + resMaskData.length(), this);
-			}
 			socket.socketClose();
 		}
 	}

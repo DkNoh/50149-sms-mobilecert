@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "oracle-integration",
+  "objective": "Create an isolated synthetic schema in the user's local Docker Oracle and verify real JDBC/Hikari and KCB DAO behavior without changing production source.",
+  "base_ref": "main",
+  "tasks": [
+    {
+      "id": "task-oracle-integration",
+      "title": "Synthetic Oracle schema and real-driver integration tests",
+      "kind": "test",
+      "dependencies": [],
+      "allowed_files": [
+        "pom.xml",
+        "src/test/**",
+        "tools/tests/**",
+        "docs/oracle-integration.md",
+        "tools/orca/plans/oracle-integration.json"
+      ],
+      "acceptance_criteria": [
+        "Local Docker Oracle only",
+        "Dedicated generated test schema, no existing application data mutations",
+        "DDL explicitly synthetic and inferred from KCB DAO",
+        "Real Oracle persistence, charset, rollback, failures and Hikari behavior verified",
+        "No production authentication source changes"
+      ],
+      "tests": [
+        "tools/tests/verify-oracle.sh"
+      ],
+      "risk": "high",
+      "worker": "codex",
+      "orca_task_id": null,
+      "status": "completed"
+    }
+  ],
+  "integration_order": [
+    "task-oracle-integration"
+  ]
+}

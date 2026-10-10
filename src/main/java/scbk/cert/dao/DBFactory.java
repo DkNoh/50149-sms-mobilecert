@@ -2,7 +2,6 @@ package scbk.cert.dao;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,20 +12,16 @@ import scbk.cert.util.CommonUtil;
 import scbk.cert.util.Log;
 import scbk.cert.util.XMLFactory;
 
-import com.bitmechanic.sql.ConnectionPool;
-import com.bitmechanic.sql.ConnectionPoolManager;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 
 public class DBFactory {
 
 	private static DBConfigBean configBean = null;
 	private static DBFactory instance;
-	private static ConnectionPoolManager cpm;
-
-	private static int reapConnInterval = 300;
+	private static volatile HikariDataSource dataSource;
 	private static int maxConn = 10;
 	private static int idleTimeout = 60;
-	private static int checkoutTimeout = 60;
-	private static int maxCheckout = 15;
 
 	protected void loadProperties() {
 		try {
@@ -35,28 +30,52 @@ public class DBFactory {
 				maxConn = CommonUtil.parseInt(configBean.getConnection());
 			}
 		} catch (Exception e) {
-			Log.write("log.root", "DBConfigBean Load Error " + e.getMessage(), this);
+			Log.error("log.root", "event=DB_CONFIG_LOAD_FAILED", e, this);
 		}
 
 	}
 
 	public DBFactory() {
-		loadProperties();
-		if (cpm == null) {
-			try {
-				Class.forName(configBean.getJdbcDriver());
-				cpm = new ConnectionPoolManager(reapConnInterval);
-				cpm.addAlias(configBean.getPoolName(), configBean.getJdbcDriver()
-						, configBean.getDbUrl(), configBean.getDbUser()
-						, configBean.getDbPassword(), maxConn
-						, idleTimeout, checkoutTimeout, maxCheckout);
-			} catch (Exception e) {
-				Log.write("log.root", "DBConfigBean Load Error " + e.getMessage(), this);
+		synchronized (DBFactory.class) {
+			loadProperties();
+			if (dataSource == null) {
+				try {
+					dataSource = createDataSource(configBean);
+				} catch (Exception e) {
+					Log.error("log.root", "event=DB_POOL_INITIALIZATION_FAILED", e, this);
+				}
 			}
 		}
 	}
 
-	public static DBFactory getInstance() {
+	static HikariDataSource createDataSource(DBConfigBean bean) {
+		// No-arg construction preserves lazy database connection establishment.
+		HikariDataSource pool = new HikariDataSource();
+		pool.setPoolName(bean.getPoolName());
+		pool.setDriverClassName(bean.getJdbcDriver());
+		pool.setJdbcUrl(bean.getDbUrl());
+		pool.setUsername(bean.getDbUser());
+		pool.setPassword(bean.getDbPassword());
+		int configuredMax = CommonUtil.parseInt(bean.getConnection());
+		pool.setMaximumPoolSize(configuredMax > 0 ? configuredMax : maxConn);
+		pool.setMinimumIdle(0);
+		pool.setIdleTimeout(idleTimeout * 1000L);
+		pool.setMaxLifetime(0);
+		pool.setKeepaliveTime(0);
+		// Legacy checkoutTimeout was borrowed-connection age, NOT borrow wait time.
+		// This is a new, bounded acquisition wait; see the migration report.
+		pool.setConnectionTimeout(Long.parseLong(System.getProperty(
+				"scbk.cert.db.connectionTimeoutMs", "60000")));
+		pool.setInitializationFailTimeout(1);
+		pool.setLeakDetectionThreshold(60000);
+		// jdbcpool 0.99 preserves the driver's default auto-commit=true.
+		pool.setAutoCommit(true);
+		// Preserve ojdbc14-era explicit commit() calls while auto-commit is enabled.
+		pool.addDataSourceProperty("oracle.jdbc.autoCommitSpecCompliant", "false");
+		return pool;
+	}
+
+	public static synchronized DBFactory getInstance() {
 		if (instance == null) {
 			instance = new DBFactory();
 		}
@@ -70,10 +89,14 @@ public class DBFactory {
 			if (instance == null) {
 				DBFactory.getInstance();
 			}
-			conn = DriverManager.getConnection(ConnectionPoolManager.URL_PREFIX + configBean.getPoolName());
+			HikariDataSource pool = dataSource;
+			if (pool == null) {
+				throw new SQLException("Database pool is not initialized");
+			}
+			conn = pool.getConnection();
 
-		} catch (SQLException e) {
-			Log.write("log.root", "DBConnection Error " + e.getMessage(), this);
+		} catch (SQLException | RuntimeException e) {
+			Log.error("log.root", "event=DB_CONNECTION_ACQUIRE_FAILED", e, this);
 		}
 		return conn;
 	}
@@ -81,12 +104,24 @@ public class DBFactory {
 	public String dumpPoolInfo() {
 		String info = "";
 		try {
-			ConnectionPool cp = cpm.getPool(configBean.getPoolName());
-			info = cp.dumpInfo();
+			HikariPoolMXBean pool = dataSource.getHikariPoolMXBean();
+			if (pool != null) {
+				info = "active=" + pool.getActiveConnections()
+						+ ", idle=" + pool.getIdleConnections()
+						+ ", total=" + pool.getTotalConnections()
+						+ ", waiting=" + pool.getThreadsAwaitingConnection();
+			}
 		} catch (Exception e) {
 		}
 
 		return info;
+	}
+
+	public static synchronized void shutdown() {
+		// Do not call getInstance(): shutdown must not load config or start a pool.
+		if (dataSource != null) {
+			dataSource.close();
+		}
 	}
 
 	public void close(Connection conn) {

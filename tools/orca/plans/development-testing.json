@@ -1,0 +1,28 @@
+{
+  "name": "development-oracle-preflight-and-test-guide",
+  "orca_task_id": null,
+  "orca_unavailable_reason": "No callable Orca task tool is available in this session.",
+  "status": "completed",
+  "worktree": "worktrees/dev-test-guide",
+  "branch": "codex/mobilecert-dev-test-guide",
+  "scope": [
+    "Use existing development Oracle 19c SMS objects; no extra schema requirement",
+    "Commented read-only development preflight shell with interactive credentials",
+    "Document current tools, future full-flow testing, pre-Vault credentials and logging changes"
+  ],
+  "constraints": [
+    "No src/main modifications in this documentation/preflight task",
+    "No real development DB, KCB, LG U+ or MCI connection in this session",
+    "No DDL, business DML, sequence NEXTVAL, shared-DB fault injection or cleanup",
+    "Never print/store credentials, DB endpoints, private identities or raw exceptions"
+  ],
+  "validation": [
+    "bash syntax and CLI template/permissions/placeholder/config/secret-argument rejection passed",
+    "Python launcher safety tests: 11 passed",
+    "Java input validation: 13 passed; read-only SQL and cleanup: 10 passed; launcher integration: 3 passed",
+    "All 37 automated cases are offline/synthetic; no development Oracle connection",
+    "Java 21 compilation, Python syntax and git diff --check passed",
+    "Pre-existing src/main, src/test and pom byte hashes unchanged"
+  ],
+  "qwen_calls": 0
+}

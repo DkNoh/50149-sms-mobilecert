@@ -9,6 +9,8 @@
 
 package scbk.cert.bean.kcb;
 
+import scbk.cert.util.CertCharset;
+
 import scbk.cert.util.CommonUtil;
 
 public class KCBCertReqBean {
@@ -93,7 +95,7 @@ public class KCBCertReqBean {
 	}
 
 	public KCBCertReqBean(String transaction) {
-		this(transaction.getBytes());
+		this(transaction.getBytes(CertCharset.EUC_KR));
 	}
 
 	public String getTransaction() {

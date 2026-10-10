@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "auth-test-readiness",
+  "objective": "Verify the current JDK 21 and HikariCP snapshot for active KCB and shared paths; keep unused LG U+ transport diagnostics optional, without changing production authentication code.",
+  "base_ref": "main",
+  "tasks": [
+    {
+      "id": "task-auth-test-readiness",
+      "title": "Isolated authentication tests, execution shell, and source review",
+      "kind": "test",
+      "dependencies": [],
+      "allowed_files": [
+        "pom.xml",
+        "src/test/**",
+        "tools/tests/**",
+        "tools/orca/plans/auth-test-readiness.json",
+        "docs/auth-test-readiness.md"
+      ],
+      "acceptance_criteria": [
+        "No production source changes",
+        "Regression and business readiness results are reported separately",
+        "No production DB or provider connection",
+        "Expected static findings have source evidence"
+      ],
+      "tests": [
+        "mvn test",
+        "tools/tests/verify-mobilecert.sh regression",
+        "tools/tests/verify-mobilecert.sh readiness",
+        "tools/tests/verify-mobilecert.sh coverage"
+      ],
+      "risk": "high",
+      "worker": "codex",
+      "orca_task_id": null,
+      "status": "completed"
+    }
+  ],
+  "integration_order": [
+    "task-auth-test-readiness"
+  ]
+}

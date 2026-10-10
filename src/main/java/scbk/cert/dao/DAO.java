@@ -42,8 +42,7 @@ public class DAO {
 			}
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + selectQry + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=DAO.getSerno", e, this);
 		} finally {
 			db.close(conn, pstmt, rset);
 		}
@@ -108,8 +107,7 @@ public class DAO {
 			conn.commit();
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=DAO.insert", e, this);
 		} finally {
 			db.close(pstmt);
 			db.close(conn);
@@ -160,8 +158,7 @@ public class DAO {
 			conn.commit();
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=DAO.updateStep1", e, this);
 		} finally {
 			db.close(pstmt);
 			db.close(conn);
@@ -212,8 +209,7 @@ public class DAO {
 			conn.commit();
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=DAO.updateStep2", e, this);
 		} finally {
 			db.close(pstmt);
 			db.close(conn);
@@ -272,8 +268,7 @@ public class DAO {
 			}
 
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=DAO.selectCheck", e, this);
 		} finally {
 			db.close(conn, pstmt, rset);
 		}
@@ -302,8 +297,7 @@ public class DAO {
 				cnt = rset.getInt("CNT");
 			}
 		} catch (Exception e) {
-			Log.write("log.day", "QUERY =[" + query + "]", this);
-			Log.write("log.day", CommonUtil.getExceptionMessage(e), this);
+			Log.error("log.day", "event=DB_OPERATION_FAILED operation=DAO.selectDeptCode", e, this);
 		} finally {
 			db.close(conn, pstmt, rset);
 		}
