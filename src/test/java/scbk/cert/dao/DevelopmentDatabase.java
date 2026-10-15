@@ -55,7 +55,9 @@ public final class DevelopmentDatabase implements AutoCloseable {
     }
 
     public static DevelopmentDatabase open() {
-        DevelopmentDatabase database = new DevelopmentDatabase(ServiceTestConfig.load());
+        ServiceTestConfig config = ServiceTestConfig.load();
+        config.requireDevelopmentDatabase();
+        DevelopmentDatabase database = new DevelopmentDatabase(config);
         try {
             database.initialize();
             return database;

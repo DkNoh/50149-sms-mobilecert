@@ -1,0 +1,26 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="KCB 운영 설정 검사" type="MavenRunConfiguration" factoryName="Maven">
+    <MavenSettings>
+      <option name="myGeneralSettings" />
+      <option name="myRunnerSettings" />
+      <option name="myRunnerParameters">
+        <MavenRunnerParameters>
+          <option name="goals">
+            <list>
+              <option value="-Dmobilecert.test.config=conf/service-prod.xml" />
+              <option value="test" />
+            </list>
+          </option>
+          <option name="profilesMap">
+            <map>
+              <entry key="java21" value="true" />
+              <entry key="config" value="true" />
+            </map>
+          </option>
+          <option name="workingDirPath" value="$PROJECT_DIR$" />
+        </MavenRunnerParameters>
+      </option>
+    </MavenSettings>
+    <method v="2" />
+  </configuration>
+</component>

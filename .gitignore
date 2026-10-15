@@ -20,3 +20,4 @@ config/**/secrets*.yml
 tools/code-index/out/
 /conf/sevice-dev.xml
 /conf/service-dev.xml
+/conf/service-prod.xml

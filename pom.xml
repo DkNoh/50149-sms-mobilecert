@@ -23,7 +23,7 @@
         <jacoco.version>0.8.14</jacoco.version>
         <argLine></argLine>
         <test.groups></test.groups>
-        <test.excludedGroups>db</test.excludedGroups>
+        <test.excludedGroups>db | config</test.excludedGroups>
     </properties>
     <dependencies>
         <dependency>
@@ -152,6 +152,14 @@
                 <maven.compiler.release>21</maven.compiler.release>
                 <hikari.version>7.0.2</hikari.version>
                 <ojdbc.artifactId>ojdbc11</ojdbc.artifactId>
+            </properties>
+        </profile>
+        <profile>
+            <id>config</id>
+            <!-- 개발 또는 운영 XML을 읽고 검사하며 실제 DB에는 연결하지 않는다. -->
+            <properties>
+                <test.groups>config</test.groups>
+                <test.excludedGroups>none</test.excludedGroups>
             </properties>
         </profile>
         <profile>
