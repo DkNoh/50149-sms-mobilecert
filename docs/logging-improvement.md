@@ -89,7 +89,7 @@ ERROR event=DB_OPERATION_FAILED operation=KCBDAO.selectDeptCode requestId=<serve
 
 별도 JDK 21 비교에서 로그 변경 전/후 Provider 6개 경로의 **6,038바이트가 동일**했고 Protocol 13개도 통과했다. 이는 로그 변경 전후 비교이며 기존 Java 6/8 런타임 실행물과 비교한 결과는 아니다.
 
-프로젝트 루트에서 `tools/tests/verify-mobilecert.sh regression`을 실행한다. 결과는 `target/test-runs/regression/index.html`과 `summary.json`으로 확인한다. 전체 회귀가 통과해도 기존 `readiness` 결함, 개발 Oracle 19c 실접속, KCB 실연동, 실제 Log4j/JUL 배포 설정, 전체 인증 흐름·부하 검증이 해소되는 것은 아니다.
+현재 로그 검증은 LogSafetyTest에 남아 있다. 과거 Provider·DAO·서버 로그 테스트와 Python 보고서는 테스트 범위 축소로 제거했다. 현재 실행과 보고서 위치는 [개발 검증 안내](development-testing.md)를 따른다. 아래 수치는 당시 실행 기록이며 현재 테스트 수나 검증 범위를 뜻하지 않는다.
 
 작업: Codex 및 구현/검토 서브에이전트, `worktrees/safe-logging`. 실제 개발 Oracle·KCB·내부 MCI 접속과 Qwen 3.8 Max 호출은 수행하지 않았다. 메인 통합·패키징을 완료했다. 기존 readiness 실패 10개는 해결되지 않았으며 최신 결과는 `target/test-runs/readiness/`에 남겼다.
 

@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/** Java 8 equivalents for I/O used only by isolated test fixtures. */
+/** 독립된 테스트에서 사용하는 자바 8 호환 입출력 기능이다. */
 public final class TestIo {
     private TestIo() { }
 

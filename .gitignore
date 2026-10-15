@@ -18,3 +18,5 @@ __pycache__/
 config/**/vault*.yml
 config/**/secrets*.yml
 tools/code-index/out/
+/conf/sevice-dev.xml
+/conf/service-dev.xml

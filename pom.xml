@@ -22,7 +22,8 @@
         <slf4j.version>2.0.17</slf4j.version>
         <jacoco.version>0.8.14</jacoco.version>
         <argLine></argLine>
-        <test.excludedGroups>readiness | inactive-lgu | oracle</test.excludedGroups>
+        <test.groups></test.groups>
+        <test.excludedGroups>db</test.excludedGroups>
     </properties>
     <dependencies>
         <dependency>
@@ -106,8 +107,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <!-- Both runtimes test legacy protocol bytes with a UTF-8 default. -->
+                    <!-- 기본 문자셋이 UTF-8인 환경에서도 EUC-KR 전문을 검증한다. -->
                     <argLine>@{argLine} -Dfile.encoding=UTF-8</argLine>
+                    <groups>${test.groups}</groups>
                     <excludedGroups>${test.excludedGroups}</excludedGroups>
                 </configuration>
             </plugin>
@@ -130,7 +132,7 @@
         </plugins>
     </build>
     <profiles>
-        <!-- Use the matching JDK. clean removes libraries from the other profile. -->
+        <!-- JDK를 바꾸면 clean으로 이전 프로파일의 라이브러리를 제거한다. -->
         <profile>
             <id>java8</id>
             <activation><jdk>[1.8,1.9)</jdk></activation>
@@ -153,47 +155,32 @@
             </properties>
         </profile>
         <profile>
-            <id>oracle</id>
-            <properties><test.excludedGroups>readiness</test.excludedGroups></properties>
+            <id>db</id>
+            <!-- 실제 개발 DB 검증은 명시적으로 선택한 경우에만 실행한다. -->
+            <properties>
+                <test.groups>db</test.groups>
+                <test.excludedGroups>none</test.excludedGroups>
+            </properties>
             <build><plugins><plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <groups>oracle</groups>
                     <forkedProcessTimeoutInSeconds>120</forkedProcessTimeoutInSeconds>
                 </configuration>
             </plugin></plugins></build>
         </profile>
         <profile>
-            <id>oracle-readiness</id>
-            <properties><test.excludedGroups>none</test.excludedGroups></properties>
+            <id>all-tests</id>
+            <properties>
+                <test.groups></test.groups>
+                <test.excludedGroups>none</test.excludedGroups>
+            </properties>
             <build><plugins><plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <groups>oracle &amp; readiness</groups>
                     <forkedProcessTimeoutInSeconds>120</forkedProcessTimeoutInSeconds>
                 </configuration>
-            </plugin></plugins></build>
-        </profile>
-        <!-- Desired failure handling. Known defects deliberately fail this gate. -->
-        <profile>
-            <id>readiness</id>
-            <properties><test.excludedGroups>inactive-lgu | oracle</test.excludedGroups></properties>
-            <build><plugins><plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration><groups>readiness</groups></configuration>
-            </plugin></plugins></build>
-        </profile>
-        <!-- Historical LG U+ diagnostics: this provider is not currently used. -->
-        <profile>
-            <id>legacy-lgu</id>
-            <properties><test.excludedGroups>none</test.excludedGroups></properties>
-            <build><plugins><plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration><groups>inactive-lgu</groups></configuration>
             </plugin></plugins></build>
         </profile>
         <profile>

@@ -34,7 +34,7 @@ import scbk.cert.util.CommonUtil;
 import scbk.cert.util.Log;
 
 public class Gateway {
-	// Routing behavior is unchanged; report this optional-file fallback once per JVM.
+	// 기존 라우팅 동작을 유지하며 선택 설정 파일 누락은 최초 한 번만 알린다.
 	private static final java.util.concurrent.atomic.AtomicBoolean ROUTE_WARNING_LOGGED =
 			new java.util.concurrent.atomic.AtomicBoolean();
 
@@ -53,15 +53,16 @@ public class Gateway {
 		this.id = id;
 	}
 
-	public byte[] execute(byte[] request) {
-		
-		// MCI 해더 추출하고. 응답값 셋팅한다.
-		mciParser = new MCIParser(request);
-		mciHeaderBean = new MCIHeaderBean(mciParser.getSystemHeader());
-		mciTransBean = new MCITransBean(mciParser.getTransactionHeader());
-		String reqData = CommonUtil.toString(mciParser.getData(), 0, 472);
+	// 기존 운영 생성 경로를 유지하며 테스트에서 실제 DAO 또는 통신 대역을 선택한다.
+	protected KCBDAO createKcbDao(String table, String infoTable) {
+		return new KCBDAO(table, infoTable);
+	}
 
-		
+	protected KCBCommunication createKcbCommunication(KCBConfigBean configuration, String requestId) {
+		return new KCBCommunication(configuration, requestId);
+	}
+
+	protected String selectProvider(String transactionCode) {
 		/* 2021.04.12
 		 * MCI 헤더의 tranCd(거래코드)로 LGU+ , KCB 사용 구분 함.
 		 * default KCB로 인증하도록 하고 파일 삭제시 아래 try catch 문 삭제.
@@ -69,21 +70,21 @@ public class Gateway {
 		String lguPlus = "../conf/lguPlus";
 		String readLine;
 		String mobileCertMode = "KCB";
-		
+
 		ArrayList<String> lguPlusList = new ArrayList<String>();
 		try {
 			InputStreamReader fileReader = new InputStreamReader(new FileInputStream(lguPlus), CertCharset.EUC_KR);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
-			
+
 			while((readLine = bufferedReader.readLine()) != null) {
 				lguPlusList.add(readLine);
 			}
-			if(lguPlusList.indexOf(mciHeaderBean.getTranCd()) >= 0) {
+			if(lguPlusList.indexOf(transactionCode) >= 0) {
 				mobileCertMode = "LGU";
 			} else {
 				mobileCertMode = "KCB";
 			}
-			
+
 			bufferedReader.close();
 			fileReader.close();
 		} catch(Exception e) {
@@ -95,7 +96,21 @@ public class Gateway {
 			// 오류 발생시 무조건 KCB로 인증하도록 함.
 			mobileCertMode = "KCB";
 		}
+
+		return mobileCertMode;
+	}
+
+	public byte[] execute(byte[] request) {
+
+		// MCI 해더 추출하고. 응답값 셋팅한다.
+		mciParser = new MCIParser(request);
+		mciHeaderBean = new MCIHeaderBean(mciParser.getSystemHeader());
+		mciTransBean = new MCITransBean(mciParser.getTransactionHeader());
+		String reqData = CommonUtil.toString(mciParser.getData(), 0, 472);
+
 		
+		String mobileCertMode = selectProvider(mciHeaderBean.getTranCd());
+
 		/*
 		 * DATA 부분 발췌해서 XPAYBEAN 만든다.
 		 */
@@ -266,7 +281,7 @@ public class Gateway {
 		String currentDate = CommonUtil.getCurrentDate("yyyyMM");
 		String table = kcbConfigBean.getCertTable() + currentDate;
 		String table2 = kcbConfigBean.getCertInfoTable() + currentDate;
-		KCBDAO dao = new KCBDAO(table, table2);
+		KCBDAO dao = createKcbDao(table, table2);
 		
 		/*
 		 * 부서코드를 체크한다. 부서코드를 확인하여 부서코드가 존재하지 않을 경우 오류로 리턴한다.
@@ -323,7 +338,7 @@ public class Gateway {
 			/*
 			 * 통신진행한다.
 			 */
-			KCBCommunication comm = new KCBCommunication(kcbConfigBean, id);
+			KCBCommunication comm = createKcbCommunication(kcbConfigBean, id);
 			String makeReqData = this.makeReqData(certReqBean, deptCode);
 			
 			

@@ -13,7 +13,7 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.config.Property;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-/** Capture actual Log4j bridge output, even though the default test logger is OFF. */
+/** 기본 테스트 로그가 꺼져 있어도 실제 로그 변환 결과를 수집한다. */
 public final class LogCapture implements AutoCloseable {
     private final LoggerContext context = (LoggerContext) LogManager.getContext(false);
     private final Configuration configuration = context.getConfiguration();

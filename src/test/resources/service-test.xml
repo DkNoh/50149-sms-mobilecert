@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<mbCert>
+    <!-- 외부 통신에 사용하지 않는 설정 읽기 검증용 값이다. -->
+    <entity class="scbk.cert.conf.KCBConfigBean" name="MOBILE_CERT">
+        <kcbIp>127.0.0.1</kcbIp>
+        <kcbPort>0</kcbPort>
+        <kcbTimeout>30000</kcbTimeout>
+        <ackServer> </ackServer>
+        <txCode>SYN-TX</txCode>
+        <connMemberCode>SYNMEM</connMemberCode>
+        <memberCode>SYN-MEMBER</memberCode>
+        <tranKindCode>0700</tranKindCode>
+        <bizTypeCode>400</bizTypeCode>
+        <tranFlag>B</tranFlag>
+        <timeOut>3</timeOut>
+        <retryCnt>5</retryCnt>
+        <certTable>SYN_CERT_HST_</certTable>
+        <certInfoTable>SYN_CERT_INFO_HST_</certInfoTable>
+        <reqUrl>https://example.invalid</reqUrl>
+        <reqIp>127.0.0.1</reqIp>
+        <step1Mode>Y</step1Mode>
+        <step2Mode>Y</step2Mode>
+        <testRespCode>0000</testRespCode>
+        <testRespMsg>인증성공</testRespMsg>
+    </entity>
+    <!-- 데이터베이스에 연결하지 않고 항목 대응만 확인한다. -->
+    <entity class="scbk.cert.conf.DBConfigBean" name="DEFAULT_DB">
+        <dbType>ORACLE</dbType>
+        <poolName>SYNTHETIC_POOL</poolName>
+        <jdbcDriver>oracle.jdbc.driver.OracleDriver</jdbcDriver>
+        <dbUrl>jdbc:oracle:thin:@127.0.0.1:1:DISABLED</dbUrl>
+        <dbUser>SYNTHETIC_USER</dbUser>
+        <dbPassword>SYNTHETIC_PASSWORD</dbPassword>
+        <connection>2</connection>
+    </entity>
+</mbCert>

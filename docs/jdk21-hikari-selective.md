@@ -1,6 +1,6 @@
 # mobilecert JDK 21 · HikariCP 선별 전환
 
-이 문서는 최초 JDK 21/Hikari 전환 기록이다. **후속 변경에서는 JVM 전체 EUC-KR 강제 검사와 실행 옵션을 제거했다.** 전문·소스 파일·명시적 표준 출력 인코딩은 유지한다. 아래 과거 실행 결과와 현재 결과는 [후속 검증 기록](auth-test-readiness.md#utf-8-기본-jvm-기동-변경)으로 구분한다.
+이 문서는 최초 JDK 21/Hikari 전환 기록이다. **후속 변경에서는 JVM 전체 EUC-KR 강제 검사와 실행 옵션을 제거했다.** 전문·소스 파일·명시적 표준 출력 인코딩은 유지한다. 아래 과거 실행 결과와 현재 결과는 [현재 검증 범위](auth-test-readiness.md)으로 구분한다.
 
 ## 작업 위치와 범위
 
@@ -89,19 +89,9 @@ Oracle JDBC 12.1 이후에는 자동 커밋 상태에서 명시적 `commit()`을
 - 패키지 SHA-256: `47030a6489373adade573fb0ff2ca8ccf82bd87f46b3ad3d5e9d2ec8bae81a99`
 - 내부 `jdbcpool.jar` SHA-256: `ff76a46ac5b744652f607298884a644abbb2449319144279f7a7c2267145a73f`
 
-## 재실행
+## 현재 실행 방법
 
-JDK 21을 JAVA_HOME/PATH에 지정한 뒤 프로젝트 루트에서:
-
-```sh
-mvn clean verify
-python3 tools/tests/compare-runtimes.py \
-  --java8-home /path/to/jdk8 \
-  --java21-home /path/to/jdk21 \
-  --legacy-pool-jar /path/to/authentic/jdbcpool-0.99.jar
-```
-
-`--legacy-pool-jar`를 생략하면 전문 비교는 실행하고 기존 풀 검증은 SKIP으로 표시한다. 비교 도구는 임시 디렉터리에서 실행하며 운영 conf를 읽지 않는다. 일반 Maven 테스트도 외부 연결을 사용하지 않는다.
+이 문서의 결과는 과거 전환 기록이다. Python 비교 도구와 Docker·LG·소켓 테스트는 제거했으며 현재 실행 방법은 [개발 검증 안내](development-testing.md)를 따른다.
 
 실제 서비스 실행은 승인된 테스트 환경의 기존 `../conf` 배치와 작업 디렉터리를 준비한 후 실행 스크립트를 사용한다. 기존 `scbk.cert.server.type` 등 JVM 옵션은 스크립트 인수로 전달할 수 있다. 스크립트는 임의의 dev/prod 설정을 선택하거나 conf를 생성하지 않는다.
 
