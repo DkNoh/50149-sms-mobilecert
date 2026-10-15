@@ -4,7 +4,7 @@
 
 | 실행 | 확인하는 내용 | 확인하지 않는 내용 |
 |---|---|---|
-| 기본 `mvn -Pjava21 test` | KCB 고정 길이 전문과 EUC-KR, 설정 파싱, 대체 의존성을 사용한 업무 분기, 셸 인자·종료 코드 | 실제 DB 저장, 실제 KCB 통신, TCP 처리 |
+| 기본 `mvn -Pjava21 test` | KCB 고정 길이 전문과 EUC-KR, 설정 파싱, 대체 의존성을 사용한 업무 분기, Linux 또는 명시적 선택 시 셸 인자·종료 코드 | 실제 DB 저장, 실제 KCB 통신, TCP 처리 |
 | `mvn "-Pjava21,db" test` | 기존 개발 DB의 KCB DAO 조회·저장과 업무 결과 대조, 테스트 생성 행 정리 | 실 공급자 인증, 서비스 TCP 송수신·기동, 장애·부하 시험 |
 | `mvn "-Pjava21,all-tests" test` | 위 두 범위의 합계 | 운영 환경 전체 인증과 성능 보증 |
 | `mvn "-Pjava21,coverage" clean verify` | 기본 테스트의 JaCoCo 실행률 | 테스트에서 실행하지 않은 동작의 정확성 |
@@ -28,3 +28,11 @@
 - 처음 오프라인 커버리지 실행은 로컬 JaCoCo 플러그인 캐시 부족으로 중단됐다. 의존성을 받은 후 위 전체 검증에 성공했다. 폐쇄망에서는 사내 Nexus를 사용한다.
 - `git diff --check`, 셸 문법, 테스트 메서드명·단계 주석과 코드 인덱스 갱신을 확인했다.
 - Qwen 3.8 Max 호출 없음.
+## Windows와 IntelliJ 실행 조정
+
+- 같은 하위 Worktree에서 ShellScriptTest의 클래스 실행 조건, 공유 Maven 실행 설정 2개, 실행 안내를 변경했다. POM과 운영 소스·DB 설정은 변경하지 않았다.
+- Windows 기본 Maven 실행: Java 테스트 34개 통과, Linux용 셸 테스트 10개 건너뜀. Git Bash 경로를 명시한 셸 실행: 10개 통과. 존재하지 않는 Bash 경로를 명시한 경우: 예상대로 1개 실패.
+- WSL Ubuntu의 실제 Bash로 기존 셸 2개의 문법 검사 통과. Linux JDK가 없어 Linux JVM의 JUnit 실행은 수행하지 못했다. Windows의 `os.name`을 바꾸어 Linux 검증으로 간주하지 않았다.
+- 공유 IntelliJ 설정은 공식 Maven 직렬화 형식을 대조하고 XML·프로파일·작업 경로를 검사했다. IntelliJ UI에서의 직접 로딩·실행은 미검증이다.
+- 실제 DB는 이번 운영체제 조정 검증에서 접속하지 않았다. 앞서 확인한 개발 DB 연결 시간 초과는 그대로 미해결이다.
+- 담당 AI: Codex와 읽기 전용 검토·실행 설정 보조 에이전트. Orca 연결 도구 없음, Qwen 3.8 Max 호출 없음.

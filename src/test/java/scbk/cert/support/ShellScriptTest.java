@@ -22,9 +22,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 @Tag("shell")
+@EnabledIf(value = "셸검증대상환경이다", disabledReason = "셸 검증은 Linux 또는 명시적으로 선택한 환경에서 실행합니다.")
 @Timeout(30)
 class ShellScriptTest {
     @TempDir
@@ -38,6 +41,17 @@ class ShellScriptTest {
     private Path fakeJavaHome;
     private String bash;
     private final Map<String, String> overrides = new HashMap<String, String>();
+
+    private static boolean 셸검증대상환경이다() {
+        // Maven과 IntelliJ의 직접 실행에 같은 운영체제 선택 기준을 적용한다.
+        return OS.LINUX.isCurrentOs() || Boolean.getBoolean("mobilecert.test.shell")
+                || 경로를지정했다(System.getProperty("mobilecert.test.bash"))
+                || 경로를지정했다(System.getenv("MOBILECERT_TEST_BASH"));
+    }
+
+    private static boolean 경로를지정했다(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
 
     @BeforeEach
     void 임시환경을준비한다() throws Exception {
