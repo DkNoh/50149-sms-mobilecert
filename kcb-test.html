@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'">
+  <title>모바일 본인인증 테스트</title>
+  <style>
+    :root { color-scheme: light; --ink:#16243a; --muted:#62718a; --line:#dce3ed; --blue:#2557d6; --soft:#f1f5ff; --bg:#f5f7fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif; }
+    button,input,select { font:inherit; }
+    button { cursor:pointer; }
+    button:disabled { cursor:not-allowed; opacity:.48; }
+    button:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid #a9c1ff; outline-offset:2px; }
+    .page { max-width:1040px; margin:0 auto; padding:40px 24px 48px; }
+    .eyebrow { display:inline-block; margin-bottom:10px; color:var(--blue); font-size:12px; font-weight:750; letter-spacing:.12em; }
+    h1 { margin:0; font-size:30px; line-height:1.35; letter-spacing:-.05em; }
+    .intro { margin:10px 0 28px; color:var(--muted); }
+    .steps { display:flex; gap:24px; margin:0 0 25px; padding:0; list-style:none; }
+    .steps li { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:14px; }
+    .step-number { display:grid; place-items:center; width:28px; height:28px; border:1px solid var(--line); border-radius:50%; background:white; font-weight:700; }
+    .steps .active { color:var(--blue); font-weight:700; }
+    .active .step-number { border-color:var(--blue); background:var(--blue); color:white; }
+    .steps .complete .step-number { border-color:#b6d9c9; background:#e7f5ee; color:#197149; }
+    .layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(270px,1fr); gap:22px; align-items:start; }
+    .stack { display:grid; gap:18px; }
+    .card { padding:25px; border:1px solid var(--line); border-radius:16px; background:white; box-shadow:0 4px 20px #172c4c04; }
+    h2 { margin:0 0 4px; font-size:18px; letter-spacing:-.03em; }
+    h3 { margin:0 0 14px; font-size:14px; }
+    .help { margin:0 0 20px; font-size:13px; color:var(--muted); }
+    fieldset { min-width:0; margin:0; padding:0; border:0; }
+    fieldset:disabled { opacity:.62; }
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:17px 16px; }
+    .wide { grid-column:1 / -1; }
+    label { display:block; margin:0 0 6px; font-size:13px; font-weight:650; }
+    input,select { width:100%; height:43px; padding:9px 11px; border:1px solid #cbd5e3; border-radius:8px; background:white; color:var(--ink); }
+    input::placeholder { color:#8a96a8; }
+    input:disabled,select:disabled { background:#f6f8fb; }
+    .hint { display:block; margin-top:5px; color:var(--muted); font-size:12px; }
+    .divider { height:1px; margin:23px 0 20px; background:#edf0f5; }
+    .send-note { margin:22px 0 10px; color:#52627c; font-size:13px; }
+    .button { min-height:43px; padding:10px 17px; border:1px solid transparent; border-radius:8px; font-weight:650; }
+    .primary { width:100%; color:white; background:var(--blue); }
+    .secondary { border-color:var(--line); background:white; color:#40516b; }
+    .secondary:hover:not(:disabled) { background:#f5f7fb; }
+    .primary:hover:not(:disabled) { background:#1d46b4; }
+    .status-head { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
+    .status-dot { width:9px; height:9px; flex:0 0 9px; border-radius:50%; background:#9aa7bb; }
+    .status[data-stage="READY"] .status-dot,.status[data-stage="OTP"] .status-dot { background:var(--blue); }
+    .status[data-stage="DONE"] .status-dot { background:#19835a; }
+    .status[data-stage="UNKNOWN"] .status-dot { background:#c28212; }
+    .status-title { margin:0; font-size:16px; }
+    .status-message { margin:0; color:#53637c; font-size:14px; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .code { display:inline-block; margin-top:13px; padding:3px 8px; border-radius:5px; background:#f2f5fa; color:#53637c; font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; }
+    .notice { margin:14px 0 0; padding:11px 12px; border:1px solid #f1dbad; border-radius:8px; background:#fff9ed; color:#805813; font-size:13px; }
+    .otp-card { border-color:#bdd0ff; }
+    .otp-input { height:49px; text-align:center; font-size:23px; letter-spacing:.28em; }
+    .otp-card .button { margin-top:15px; }
+    .reset-row { display:flex; justify-content:flex-end; }
+    .footnote { margin:18px 2px 0; color:var(--muted); font-size:12px; }
+    [hidden] { display:none !important; }
+    @media (max-width:760px) { .page { padding:26px 16px; } .layout { grid-template-columns:1fr; } h1 { font-size:26px; } .card { padding:21px; } .steps { gap:20px; } }
+    @media (max-width:420px) { .fields { grid-template-columns:1fr; } .wide { grid-column:auto; } }
+  </style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <span class="eyebrow">MOBILE CERT · TEST</span>
+    <h1>모바일 본인인증 테스트</h1>
+    <p class="intro">본인 정보를 입력해 인증문자를 요청하고, 받은 인증번호로 결과를 확인하세요.</p>
+  </header>
+  <ol class="steps" aria-label="인증 진행 단계">
+    <li id="stepSend" class="active" aria-current="step"><span class="step-number" aria-hidden="true">1</span>문자 요청</li>
+    <li id="stepVerify"><span class="step-number" aria-hidden="true">2</span>인증 확인</li>
+  </ol>
+  <div class="layout">
+    <form id="sendForm" class="card" method="post" autocomplete="off">
+      <h2>인증 요청 정보</h2>
+      <p class="help">테스트에 사용할 업무 정보와 본인 정보를 입력하세요.</p>
+      <fieldset id="sendFields" disabled>
+        <h3>업무 정보</h3>
+        <div class="fields">
+          <div><label for="tranCd">트랜잭션 코드</label><input id="tranCd" name="tranCd" maxlength="12" required placeholder="트랜잭션 코드 입력" spellcheck="false" autocapitalize="off"></div>
+          <div><label for="deptCode">부서 코드</label><input id="deptCode" name="deptCode" maxlength="12" required placeholder="부서 코드 입력" spellcheck="false" autocapitalize="off"></div>
+          <div><label for="officeCode">직원 코드</label><input id="officeCode" name="officeCode" maxlength="12" required placeholder="직원 코드 입력" spellcheck="false" autocapitalize="off"></div>
+          <div><label for="channel">채널 코드</label><input id="channel" name="channel" maxlength="3" required placeholder="채널 코드 입력" spellcheck="false" autocapitalize="off"></div>
+        </div>
+        <div class="divider"></div>
+        <h3>본인 정보</h3>
+        <div class="fields">
+          <div><label for="carrier">통신사</label><select id="carrier" name="carrier" required><option value="" selected disabled>통신사 선택</option><option value="1">SKT</option><option value="2">KT</option><option value="3">LG U+</option><option value="5">SKT 알뜰폰</option><option value="6">KT 알뜰폰</option><option value="7">LG U+ 알뜰폰</option></select></div>
+          <div><label for="name">이름</label><input id="name" name="name" required autocomplete="off" placeholder="본인 이름 입력" spellcheck="false"></div>
+          <div class="wide"><label for="phone">휴대폰 번호</label><input id="phone" name="phone" inputmode="numeric" pattern="[0-9]{10,12}" minlength="10" maxlength="12" required autocomplete="off" placeholder="숫자만 입력" aria-describedby="phoneHint"><span class="hint" id="phoneHint">하이픈 없이 본인 휴대폰 번호를 입력하세요.</span></div>
+          <div class="wide"><label for="identity">본인 확인 정보 · 7자리</label><input id="identity" name="identity" type="password" inputmode="numeric" pattern="[0-9]{7}" minlength="7" maxlength="7" required autocomplete="off" placeholder="7자리 숫자 입력" aria-describedby="identityHint"><span class="hint" id="identityHint">생년월일 6자리 + 주민등록번호 뒷자리의 첫 숫자 1자리</span></div>
+        </div>
+      </fieldset>
+      <p class="send-note">실제 KCB 인증문자를 발송합니다.</p>
+      <button id="sendButton" type="submit" class="button primary" disabled>실제 SMS 발송</button>
+    </form>
+    <div class="stack">
+      <section id="status" class="card status" data-stage="LOADING" aria-live="polite" aria-atomic="true">
+        <div class="status-head"><span class="status-dot" aria-hidden="true"></span><h2 id="statusTitle" class="status-title">준비 중</h2></div>
+        <p id="statusMessage" class="status-message">테스트 화면을 준비하고 있습니다.</p>
+        <span id="statusCode" class="code" hidden></span>
+        <p id="unknownNotice" class="notice" hidden>처리 결과를 확인할 수 없습니다. 자동으로 다시 발송하지 않습니다. 수신 여부를 확인한 뒤 테스트를 초기화하세요.</p>
+      </section>
+      <form id="verifyForm" class="card otp-card" method="post" autocomplete="off" hidden>
+        <h2>인증번호 확인</h2>
+        <p class="help">휴대폰으로 받은 인증번호 6자리를 입력하세요.</p>
+        <label for="otp">인증번호</label>
+        <input id="otp" name="otp" class="otp-input" type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" required autocomplete="off" placeholder="6자리 숫자" disabled>
+        <button id="verifyButton" type="submit" class="button primary" disabled>OTP 확인</button>
+      </form>
+      <div class="reset-row"><button id="resetButton" type="button" class="button secondary" disabled>테스트 초기화</button></div>
+    </div>
+  </div>
+  <p class="footnote">이 화면은 입력 정보를 브라우저 저장소에 보관하지 않습니다. 테스트 후 화면을 닫아 주세요.</p>
+  <noscript><p class="notice">테스트 화면을 사용하려면 브라우저의 JavaScript를 활성화해 주세요.</p></noscript>
+</main>
+<script>
+(function () {
+  'use strict';
+  var endpoint = new URL('kcb-test-api.jsp', window.location.href).pathname;
+  var csrf = '';
+  var stage = 'LOADING';
+  var busy = false;
+  var stages = ['READY', 'OTP', 'DONE', 'UNKNOWN'];
+  var sendForm = document.getElementById('sendForm');
+  var sendFields = document.getElementById('sendFields');
+  var sendButton = document.getElementById('sendButton');
+  var verifyForm = document.getElementById('verifyForm');
+  var otp = document.getElementById('otp');
+  var verifyButton = document.getElementById('verifyButton');
+  var resetButton = document.getElementById('resetButton');
+  var status = document.getElementById('status');
+  var statusTitle = document.getElementById('statusTitle');
+  var statusMessage = document.getElementById('statusMessage');
+  var statusCode = document.getElementById('statusCode');
+  var unknownNotice = document.getElementById('unknownNotice');
+  var stepSend = document.getElementById('stepSend');
+  var stepVerify = document.getElementById('stepVerify');
+  var privateFields = ['name', 'phone', 'identity', 'carrier'];
+
+  function clearPrivateFields() {
+    privateFields.forEach(function (id) { document.getElementById(id).value = ''; });
+    otp.value = '';
+  }
+
+  function render() {
+    var ready = stage === 'READY';
+    var waiting = stage === 'OTP';
+    var done = stage === 'DONE';
+    sendFields.disabled = busy || !csrf || !ready;
+    sendButton.disabled = busy || !csrf || !ready;
+    otp.disabled = busy || !csrf || !waiting;
+    verifyButton.disabled = busy || !csrf || !waiting;
+    resetButton.disabled = busy || !csrf || stage === 'LOADING';
+    verifyForm.hidden = !waiting;
+    status.dataset.stage = stage;
+    unknownNotice.hidden = stage !== 'UNKNOWN';
+    stepSend.className = ready || stage === 'LOADING' ? 'active' : (waiting || done ? 'complete' : '');
+    stepVerify.className = waiting ? 'active' : (done ? 'complete' : '');
+    stepSend.removeAttribute('aria-current');
+    stepVerify.removeAttribute('aria-current');
+    if (ready) stepSend.setAttribute('aria-current', 'step');
+    if (waiting) stepVerify.setAttribute('aria-current', 'step');
+    sendForm.setAttribute('aria-busy', busy ? 'true' : 'false');
+    verifyForm.setAttribute('aria-busy', busy ? 'true' : 'false');
+  }
+
+  function setStatus(title, message, code) {
+    statusTitle.textContent = title;
+    statusMessage.textContent = message;
+    statusCode.textContent = code ? '결과 코드: ' + code : '';
+    statusCode.hidden = !code;
+  }
+
+  function applyResponse(data, action) {
+    if (!data || typeof data.ok !== 'boolean' || typeof data.code !== 'string' ||
+        typeof data.message !== 'string' || stages.indexOf(data.stage) < 0 ||
+        typeof data.csrf !== 'string' || !data.csrf) {
+      throw new Error('INVALID_RESPONSE');
+    }
+    csrf = data.csrf;
+    stage = data.stage;
+    if (stage === 'OTP' || stage === 'DONE' || stage === 'UNKNOWN') clearPrivateFields();
+    if (stage === 'DONE' || (action === 'reset' && data.ok && stage === 'READY')) {
+      sendForm.reset();
+      verifyForm.reset();
+    }
+    var titles = { READY: '인증 준비', OTP: '인증번호를 입력해 주세요', DONE: '인증 완료', UNKNOWN: '결과 확인 필요' };
+    var defaults = {
+      READY: '입력 정보를 확인한 뒤 인증문자를 요청하세요.',
+      OTP: '문자 발송 요청이 처리되었습니다. 받은 인증번호로 인증을 완료하세요.',
+      DONE: '본인인증이 완료되었습니다.',
+      UNKNOWN: '요청 결과를 확인할 수 없어 테스트를 중단했습니다.'
+    };
+    setStatus(!data.ok && stage !== 'UNKNOWN' ? '요청 결과를 확인해 주세요' : titles[stage], data.message || defaults[stage], data.code);
+  }
+
+  function failUnknown() {
+    stage = 'UNKNOWN';
+    clearPrivateFields();
+    setStatus('결과 확인 필요', csrf ? '통신이 중단되어 요청 결과를 확인할 수 없습니다.' : '화면을 초기화하지 못했습니다. 페이지를 다시 열어 상태를 확인해 주세요.', '');
+  }
+
+  async function request(action, fields) {
+    if (busy) return;
+    if (action !== 'init' && !csrf) return;
+    busy = true;
+    render();
+    var button = action === 'send' ? sendButton : (action === 'verify' ? verifyButton : resetButton);
+    var previousLabel = button.textContent;
+    if (action !== 'init') button.textContent = action === 'send' ? '발송 요청 중…' : (action === 'verify' ? '확인 중…' : '초기화 중…');
+    var controller = new AbortController();
+    var timer = window.setTimeout(function () { controller.abort(); }, 130000);
+    try {
+      var options = { method: 'GET', credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' }, signal: controller.signal };
+      var url = endpoint + '?action=init';
+      if (action !== 'init') {
+        var body = new URLSearchParams();
+        body.set('action', action);
+        body.set('csrf', csrf);
+        Object.keys(fields || {}).forEach(function (key) { body.set(key, fields[key]); });
+        options.method = 'POST';
+        options.body = body;
+        url = endpoint;
+      }
+      var response = await fetch(url, options);
+      var data = await response.json();
+      applyResponse(data, action);
+    } catch (ignored) {
+      failUnknown();
+    } finally {
+      window.clearTimeout(timer);
+      busy = false;
+      button.textContent = previousLabel;
+      render();
+      if (stage === 'OTP') otp.focus();
+      if (action === 'reset' && stage === 'READY') document.getElementById('tranCd').focus();
+    }
+  }
+
+  sendForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (busy || !csrf || stage !== 'READY' || !sendForm.reportValidity()) return;
+    var fields = {};
+    ['tranCd', 'deptCode', 'officeCode', 'channel', 'carrier', 'phone', 'identity', 'name'].forEach(function (id) {
+      fields[id] = document.getElementById(id).value.trim();
+    });
+    request('send', fields);
+  });
+
+  verifyForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (busy || !csrf || stage !== 'OTP' || !verifyForm.reportValidity()) return;
+    var value = otp.value;
+    otp.value = '';
+    request('verify', { otp: value });
+  });
+
+  resetButton.addEventListener('click', function () {
+    if (busy || !csrf) return;
+    clearPrivateFields();
+    request('reset', {});
+  });
+
+  window.addEventListener('pagehide', function () { clearPrivateFields(); });
+  render();
+  if (window.location.protocol === 'file:') {
+    stage = 'UNKNOWN';
+    setStatus('웹 주소로 접속해 주세요', '이 HTML과 kcb-test-api.jsp를 같은 WildFly 웹 경로에 올린 뒤 HTML 주소로 접속해 주세요.', '');
+    render();
+  } else {
+    request('init', {});
+  }
+}());
+</script>
+</body>
+</html>
